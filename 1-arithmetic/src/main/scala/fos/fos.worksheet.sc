@@ -5,6 +5,7 @@ def parse[T](str: String, parser: Parser[T]) =
 
 parse("true", term)
 parse("false", term)
+parse("pred pred 3", term)
 parse("3", term)
 parse("0", term)
 parse("iszero zero", term) 
@@ -23,6 +24,18 @@ reduce(parse("iszero 0", term).get)
 // reduce(Zero) TOASK why not working
 
 eval(parse("succ succ 0", term).get)
-
+// eval(parse("succ true", term).get)
+// eval(parse("succ succ succ false", term).get)
+eval(parse("iszero succ 0", term).get)
+// eval(parse("iszero succ true", term).get)
+eval(parse("if iszero 0 then succ succ succ 0 else false", term).get)
+eval(parse("if iszero succ 0 then succ succ succ 0 else pred 0", term).get)
+// eval(parse("if 0 then succ succ succ 0 else pred 0", term).get)
+eval(parse("pred succ succ pred pred 0", term).get)
+// eval(parse("pred False", term).get)
+eval(parse("pred pred 2", term).get)
+eval(parse("pred succ succ pred succ succ succ pred pred 0", term).get)
+// eval(parse("if iszero pred pred 2 then if iszero 0 then true else false else false", term).get)
+// eval(parse("if iszero pred pred pred 2 then if iszero 0 then true else false else false", term).get)
 
 

@@ -70,16 +70,29 @@ object Arithmetic extends StandardTokenParsers {
 
   case class TermIsStuck(t: Term) extends Exception(t.toString)
 
+  def isnumeric(x: Term): Boolean = x match {
+    case Zero => true
+    case Succ(t) => isnumeric(t)
+    case _ => false
+  }
+
   /** Perform big step evaluation (result is always a value.)
    *  If evaluation is not possible TermIsStuck exception with
    *  corresponding inner irreducible term should be thrown.
    */
   def eval(t: Term): Term = t match {
-    case True => True
-    case False => False
-    case Zero => Zero
-    case Succ(t1) => Succ(eval(t1))
-    case If(t1,t2,t3) => { if(eval(t1))==True{eval(t2)}else{eval(t3)}}
+    case True => True // B-VALUE
+    case False => False // B-VALUE
+    case Zero => Zero // B-VALUE
+    case Succ(t1) => {if(eval(t1)==True|eval(t1)==False){throw new TermIsStuck(t)}else{Succ(eval(t1))} }// B-SUCC: throw error if t1 is true or false?
+    // case Pred(t1) => {if(eval(t1)==Zero){Zero}else{throw new TermIsStuck(t)}} // B-PREDZERO !LET THE TERM BE STUCK FOR ELSE!
+    case Pred(t1) => eval(t1) match {
+      case Zero => Zero
+      case Succ(nv) => {if(isnumeric(nv)){eval(nv)}else{throw new TermIsStuck(t)}}
+      case _ => throw new TermIsStuck(t)
+    }
+    case IsZero(t) => {if (eval(t)==Zero){True}else if(eval(t)==True|eval(t)==False){throw new TermIsStuck(t)}else{False}} // B-ISZEROZERO
+    case If(t1, t2, t3) => {if(eval(t1)==True){eval(t2)}else if(eval(t1)==False){eval(t3)}else{throw new TermIsStuck(t)}} // B-IFTRUE & B-IFFALSE
   }
 
   def main(args: Array[String]): Unit = {
