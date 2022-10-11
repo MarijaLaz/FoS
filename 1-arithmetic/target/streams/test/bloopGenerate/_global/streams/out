@@ -1,0 +1,4 @@
+[debug] [root-1-arithmetic-test] Classpath dependencies List()
+[debug] [root-1-arithmetic-test] Dependencies from configurations List(root-1-arithmetic)
+[debug] Bloop wrote the configuration of project 'root-1-arithmetic-test' to '/Users/marijalazaroska/Desktop/FoundationsOfSoftware/1-arithmetic/.bloop/root-1-arithmetic-test.json'
+[success] Generated .bloop/root-1-arithmetic-test.json
