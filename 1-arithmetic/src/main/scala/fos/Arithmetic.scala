@@ -73,7 +73,7 @@ object Arithmetic extends StandardTokenParsers {
   def isnumeric(x: Term): Boolean = x match {
     case Zero => true
     case Succ(t) => isnumeric(t)
-    // case Pred(t) => isnumeric(t) // !AM Should this be here? I really think so
+    case Pred(t) => isnumeric(t) // !AM Should this be here? I really think so
     case _ => false
   }
 
@@ -90,21 +90,21 @@ object Arithmetic extends StandardTokenParsers {
     
 
     // B-SUCC
-    // case Succ(t1) => {if(isnumeric(t1)){Succ(eval(t1))}else{throw new TermIsStuck(t)} } // Can do this in two ways, but clearly one is better
-    case Succ(t1) => {if(eval(t1)==True|eval(t1)==False){throw new TermIsStuck(t)}else{Succ(eval(t1))} }// B-SUCC: !AM throw error if t1 is true or false?
+    case Succ(t1) => {if(isnumeric(t1)){Succ(eval(t1))}else if(t1==True | t1==False){throw new TermIsStuck((t))}else{throw new TermIsStuck((t))} } // Can do this in two ways, but clearly one is better
+    // case Succ(t1) => {if(eval(t1)==True|eval(t1)==False){throw new TermIsStuck(t)}else{Succ(eval(t1))} }// B-SUCC: !AM throw error if t1 is true or false?
     // In the second method successor of a term, true and false have been hard-coded to throw an error. (Is that okay?)
    
    // Predecessor: B-PREDZERO & B-PREDSUCC; have to know if the term inside is a numeric value, hence the extra function
     case Pred(t1) => eval(t1) match {
-      case Zero => Zero
-      case Succ(nv) => {if(isnumeric(nv)){eval(nv)}else{throw new TermIsStuck(t)}}
+      case Zero => {Zero}
+      case Succ(nv) => {if(isnumeric(nv)){eval(nv)}else{throw new TermIsStuck(eval(t1))}}
       case _ => throw new TermIsStuck(t)
     }
 
     
     // B-ISZEROZERO & B-ISZEROSUCC
-    // case IsZero(t) => {if (eval(t)==Zero){True}else if(isnumeric(t)){False}else{throw new TermIsStuck(t)}} // Can do this in two ways, but clearly one is better
-    case IsZero(t) => {if (eval(t)==Zero){True}else if(eval(t)==True|eval(t)==False){throw new TermIsStuck(t)}else{False}} // B-ISZEROZERO
+    case IsZero(t) => {if (eval(t)==Zero){True}else if(isnumeric(t)){False}else{throw new TermIsStuck(t)}} // Can do this in two ways, but clearly one is better
+    // case IsZero(t) => {if (eval(t)==Zero){True}else if(eval(t)==True|eval(t)==False){throw new TermIsStuck(t)}else{False}} // B-ISZEROZERO
     
     // B-IFTRUE & B-IFFALSE
     case If(t1, t2, t3) => {if(eval(t1)==True){eval(t2)}else if(eval(t1)==False){eval(t3)}else{throw new TermIsStuck(t)}} // else if(isnumeric(t1))
