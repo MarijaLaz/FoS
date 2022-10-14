@@ -1,0 +1,4 @@
+[debug] [root-2-untyped-test] Classpath dependencies List()
+[debug] [root-2-untyped-test] Dependencies from configurations List(root-2-untyped)
+[debug] Bloop wrote the configuration of project 'root-2-untyped-test' to '/Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/.bloop/root-2-untyped-test.json'
+[success] Generated .bloop/root-2-untyped-test.json

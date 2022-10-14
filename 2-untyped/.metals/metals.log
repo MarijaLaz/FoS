@@ -1,0 +1,307 @@
+2022.10.12 12:10:43 INFO  tracing is disabled for protocol LSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/.metals/lsp.trace.json or /Users/marijalazaroska/Library/Caches/org.scalameta.metals/lsp.trace.json
+2022.10.12 12:10:44 INFO  logging to file /Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/.metals/metals.log
+2022.10.12 12:10:44 INFO  Started: Metals version 0.11.9 in workspace '/Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped' for client Visual Studio Code 1.68.0.
+2022.10.12 12:10:45 INFO  time: initialize in 1.67s
+2022.10.12 12:10:52 WARN  Build server is not auto-connectable.
+2022.10.12 12:10:52 WARN  no build target for: /Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala
+Oct 12, 2022 12:10:52 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 1
+2022.10.12 12:11:01 INFO  no build target found for /Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala. Using presentation compiler with project's scala-library version: 3.2.0
+2022.10.12 12:11:06 INFO  running '/Users/marijalazaroska/Library/Java/JavaVirtualMachines/corretto-17.0.4.1/Contents/Home/bin/java -Djline.terminal=jline.UnsupportedTerminal -Dsbt.log.noformat=true -Dfile.encoding=UTF-8 -jar /var/folders/x9/4jxg_mms40g3p4cynwgp3wb40000gn/T/metals9397224921913812679/sbt-launch.jar -Dbloop.export-jar-classifiers=sources bloopInstall'
+2022.10.12 12:11:07 WARN  no build target for: /Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/project/metals.sbt
+2022.10.12 12:11:07 WARN  no build target for: /Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/project/project/metals.sbt
+2022.10.12 12:11:07 INFO  skipping build import with status 'Started'
+2022.10.12 12:11:08 ERROR WARNING: A terminally deprecated method in java.lang.System has been called
+2022.10.12 12:11:08 ERROR WARNING: System::setSecurityManager has been called by sbt.TrapExit$ (file:/Users/marijalazaroska/.sbt/boot/scala-2.12.14/org.scala-sbt/sbt/1.5.5/run_2.12-1.5.5.jar)
+2022.10.12 12:11:08 ERROR WARNING: Please consider reporting this to the maintainers of sbt.TrapExit$
+2022.10.12 12:11:08 ERROR WARNING: System::setSecurityManager will be removed in a future release
+2022.10.12 12:11:09 INFO  [info] welcome to sbt 1.5.5 (Amazon.com Inc. Java 17.0.4.1)
+2022.10.12 12:11:12 INFO  [info] loading global plugins from /Users/marijalazaroska/.sbt/1.0/plugins
+2022.10.12 12:11:20 INFO  [info] loading settings for project root-2-untyped-build-build from metals.sbt ...
+2022.10.12 12:11:20 INFO  [info] loading project definition from /Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/project/project
+2022.10.12 12:11:24 INFO  [info] loading settings for project root-2-untyped-build from metals.sbt ...
+2022.10.12 12:11:24 INFO  [info] loading project definition from /Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/project
+2022.10.12 12:11:27 INFO  [success] Generated .bloop/root-2-untyped-build.json
+2022.10.12 12:11:27 INFO  [success] Total time: 3 s, completed 12 Oct 2022, 12:11:28
+2022.10.12 12:11:30 INFO  [info] loading settings for project root-2-untyped from build.sbt ...
+2022.10.12 12:11:30 INFO  [info] set current project to root-2-untyped (in build file:/Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/)
+2022.10.12 12:11:32 INFO  [success] Generated .bloop/root-2-untyped.json
+2022.10.12 12:11:32 INFO  [success] Generated .bloop/root-2-untyped-test.json
+2022.10.12 12:11:32 INFO  [success] Total time: 1 s, completed 12 Oct 2022, 12:11:32
+2022.10.12 12:11:32 INFO  time: ran 'sbt bloopInstall' in 25s
+2022.10.12 12:11:32 INFO  Attempting to connect to the build server...
+2022.10.12 12:11:32 INFO  Bloop uses /Users/marijalazaroska/Library/Java/JavaVirtualMachines/corretto-17.0.4.1/Contents/Home defined at /Users/marijalazaroska/.bloop/bloop.json
+2022.10.12 12:11:32 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/.metals/bsp.trace.json or /Users/marijalazaroska/Library/Caches/org.scalameta.metals/bsp.trace.json
+2022.10.12 12:11:32 INFO  Attempting to connect to the build server...
+2022.10.12 12:11:32 INFO  Bloop uses /Users/marijalazaroska/Library/Java/JavaVirtualMachines/corretto-17.0.4.1/Contents/Home defined at /Users/marijalazaroska/.bloop/bloop.json
+2022.10.12 12:11:32 INFO  tracing is disabled for protocol BSP, to enable tracing of incoming and outgoing JSON messages create an empty file at /Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/project/.metals/bsp.trace.json or /Users/marijalazaroska/Library/Caches/org.scalameta.metals/bsp.trace.json
+2022.10.12 12:11:40 INFO  time: Connected to build server in 7.69s
+2022.10.12 12:11:40 INFO  Connected to Build server: Bloop v1.5.3
+2022.10.12 12:11:40 INFO  time: Imported build in 0.12s
+2022.10.12 12:11:54 INFO  time: indexed workspace in 14s
+2022.10.12 12:11:54 INFO  compiling root-2-untyped (2 scala sources)
+2022.10.12 12:11:59 INFO  time: compiled root-2-untyped in 4.87s
+Oct 12, 2022 12:14:24 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 46
+2022.10.12 12:19:04 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:19:06 INFO  time: compiled root-2-untyped in 1.57s
+Oct 12, 2022 12:20:16 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 218
+2022.10.12 12:22:45 WARN  no build target for: /Users/marijalazaroska/Desktop/FoundationsOfSoftware/1-arithmetic/src/main/scala/fos/Arithmetic.scala
+2022.10.12 12:23:01 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:23:02 INFO  time: compiled root-2-untyped in 1.29s
+2022.10.12 12:25:29 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:25:29 INFO  time: compiled root-2-untyped in 0.92s
+2022.10.12 12:26:08 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:26:08 INFO  time: compiled root-2-untyped in 0.64s
+Oct 12, 2022 12:27:52 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 760
+2022.10.12 12:28:00 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:28:01 INFO  time: compiled root-2-untyped in 1.02s
+2022.10.12 12:28:10 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:28:10 INFO  time: compiled root-2-untyped in 0.79s
+2022.10.12 12:28:16 INFO  time: code lens generation in 1.04s
+2022.10.12 12:28:29 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 14s
+[31merror[39m: src/main/scala/fos/fos.worksheet.sc:7:1: 
+missing argument for parameter parser of method parse in class MdocApp: (str: String, parser: fos.Untyped.Parser[Any]): fos.Untyped.ParseResult[Any]
+parse("ident")
+^^^^^^^^^^^^^^
+2022.10.12 12:28:30 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.34s
+[31merror[39m: src/main/scala/fos/fos.worksheet.sc:7:1: 
+missing argument for parameter parser of method parse in class MdocApp: (str: String, parser: fos.Untyped.Parser[Any]): fos.Untyped.ParseResult[Any]
+parse("x")
+^^^^^^^^^^
+2022.10.12 12:28:33 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 0.85s
+2022.10.12 12:29:06 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 2.09s
+2022.10.12 12:29:08 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.61s
+2022.10.12 12:30:05 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.72s
+2022.10.12 12:30:14 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:30:14 INFO  time: compiled root-2-untyped in 0.72s
+2022.10.12 12:30:22 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:30:22 INFO  time: compiled root-2-untyped in 0.34s
+Oct 12, 2022 12:30:24 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 1001
+Oct 12, 2022 12:30:27 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 1003
+2022.10.12 12:30:39 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:30:39 INFO  time: compiled root-2-untyped in 0.54s
+2022.10.12 12:30:43 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.79s
+2022.10.12 12:30:43 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 0.9s
+2022.10.12 12:31:18 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.82s
+2022.10.12 12:31:32 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:31:32 INFO  time: compiled root-2-untyped in 0.9s
+2022.10.12 12:31:35 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.92s
+2022.10.12 12:31:36 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.05s
+2022.10.12 12:31:42 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:31:42 INFO  time: compiled root-2-untyped in 0.85s
+2022.10.12 12:31:44 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.28s
+2022.10.12 12:31:45 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.03s
+2022.10.12 12:31:47 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.29s
+2022.10.12 12:32:46 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 0.92s
+2022.10.12 12:34:04 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:19:40: stale bloop error: Found:    fos.Untyped.Parser[String]
+Required: String
+  def term: Parser[Term] = ident^^^Var(ident)
+                                       ^^^^^
+2022.10.12 12:34:04 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:19:40: stale bloop error: Found:    fos.Untyped.Parser[String]
+Required: String
+  def term: Parser[Term] = ident^^^Var(ident)
+                                       ^^^^^
+2022.10.12 12:34:05 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:19:40: stale bloop error: Found:    fos.Untyped.Parser[String]
+Required: String
+  def term: Parser[Term] = ident^^^Var(ident)
+                                       ^^^^^
+2022.10.12 12:34:05 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:19:40: stale bloop error: Found:    fos.Untyped.Parser[String]
+Required: String
+  def term: Parser[Term] = ident^^^Var(ident)
+                                       ^^^^^
+2022.10.12 12:34:07 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:19:40: stale bloop error: Found:    fos.Untyped.Parser[String]
+Required: String
+  def term: Parser[Term] = ident^^^Var(ident)
+                                       ^^^^^
+2022.10.12 12:34:07 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:19:40: stale bloop error: Found:    fos.Untyped.Parser[String]
+Required: String
+  def term: Parser[Term] = ident^^^Var(ident)
+                                       ^^^^^
+2022.10.12 12:35:49 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:35:49 INFO  time: compiled root-2-untyped in 0.56s
+2022.10.12 12:36:25 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:36:25 INFO  time: compiled root-2-untyped in 0.46s
+2022.10.12 12:36:36 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:36:36 INFO  time: compiled root-2-untyped in 0.19s
+2022.10.12 12:38:03 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:38:03 INFO  time: compiled root-2-untyped in 0.18s
+2022.10.12 12:38:21 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:20:30: stale bloop error: end of statement expected but string literal found
+                            |"\\"~term~"."~term^^{ case _ ~ variable ~ _ ~ term1=> Abs(variable, term1)}
+                             ^
+2022.10.12 12:38:21 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:20:30: stale bloop error: end of statement expected but string literal found
+                            |"\\"~term~"."~term^^{ case _ ~ variable ~ _ ~ term1=> Abs(variable, term1)}
+                             ^
+2022.10.12 12:38:52 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:38:52 INFO  time: compiled root-2-untyped in 0.43s
+2022.10.12 12:38:57 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:38:57 INFO  time: compiled root-2-untyped in 0.47s
+2022.10.12 12:39:02 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:39:02 INFO  time: compiled root-2-untyped in 0.39s
+2022.10.12 12:39:56 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:39:56 INFO  time: compiled root-2-untyped in 0.74s
+2022.10.12 12:40:27 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.12s
+2022.10.12 12:40:30 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.3s
+2022.10.12 12:40:59 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 0.94s
+2022.10.12 12:41:34 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 0.6s
+Oct 12, 2022 12:41:35 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 1890
+2022.10.12 12:41:56 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:41:56 INFO  time: compiled root-2-untyped in 0.7s
+2022.10.12 12:42:09 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.33s
+Oct 12, 2022 12:42:17 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: NoDenotation.owner
+java.lang.AssertionError: NoDenotation.owner
+	at dotty.tools.dotc.core.SymDenotations$NoDenotation$.owner(SymDenotations.scala:2499)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.isForComprehensionOwner$1(PcDocumentHighlightProvider.scala:163)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.collectNames$1(PcDocumentHighlightProvider.scala:178)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.$anonfun$4(PcDocumentHighlightProvider.scala:275)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1554)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1554)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1548)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1556)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1554)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1623)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1630)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1627)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1636)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1541)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.highlights(PcDocumentHighlightProvider.scala:276)
+
+2022.10.12 12:42:34 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:42:34 INFO  time: compiled root-2-untyped in 0.74s
+2022.10.12 12:42:38 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 1.47s
+2022.10.12 12:42:38 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 0.56s
+2022.10.12 12:42:51 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 0.54s
+2022.10.12 12:43:42 INFO  time: evaluated worksheet 'fos.worksheet.sc' in 0.92s
+2022.10.12 12:44:27 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:44:27 INFO  time: compiled root-2-untyped in 0.61s
+2022.10.12 12:45:26 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:45:26 INFO  time: compiled root-2-untyped in 0.73s
+2022.10.12 12:45:39 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:45:39 INFO  time: compiled root-2-untyped in 0.53s
+2022.10.12 12:45:58 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:45:58 INFO  time: compiled root-2-untyped in 0.39s
+Oct 12, 2022 12:46:12 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: NoDenotation.owner
+java.lang.AssertionError: NoDenotation.owner
+	at dotty.tools.dotc.core.SymDenotations$NoDenotation$.owner(SymDenotations.scala:2499)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.isForComprehensionOwner$1(PcDocumentHighlightProvider.scala:163)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.collectNames$1(PcDocumentHighlightProvider.scala:178)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.$anonfun$4(PcDocumentHighlightProvider.scala:275)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1568)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1623)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1568)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1568)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1554)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1554)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1623)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1630)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1627)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.fold$1(Trees.scala:1535)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.apply(Trees.scala:1537)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1636)
+	at dotty.tools.dotc.ast.Trees$Instance$TreeAccumulator.foldOver(Trees.scala:1541)
+	at dotty.tools.dotc.ast.Trees$Instance$DeepFolder.apply(Trees.scala:1669)
+	at scala.meta.internal.pc.PcDocumentHighlightProvider$.highlights(PcDocumentHighlightProvider.scala:276)
+
+2022.10.12 12:46:13 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:22:48: stale bloop error: Found:    (x : String ~ fos.Term ~ String)
+Required: fos.Term
+                          | "("~term~")"^^{x=>(x)}
+                                               ^
+2022.10.12 12:46:13 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:22:48: stale bloop error: Found:    (x : String ~ fos.Term ~ String)
+Required: fos.Term
+                          | "("~term~")"^^{x=>(x)}
+                                               ^
+2022.10.12 12:46:13 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:22:48: stale bloop error: Found:    (x : String ~ fos.Term ~ String)
+Required: fos.Term
+                          | "("~term~")"^^{x=>(x)}
+                                               ^
+2022.10.12 12:46:13 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:22:48: stale bloop error: Found:    (x : String ~ fos.Term ~ String)
+Required: fos.Term
+                          | "("~term~")"^^{x=>(x)}
+                                               ^
+2022.10.12 12:46:14 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:22:48: stale bloop error: Found:    (x : String ~ fos.Term ~ String)
+Required: fos.Term
+                          | "("~term~")"^^{x=>(x)}
+                                               ^
+2022.10.12 12:46:14 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:22:48: stale bloop error: Found:    (x : String ~ fos.Term ~ String)
+Required: fos.Term
+                          | "("~term~")"^^{x=>(x)}
+                                               ^
+2022.10.12 12:46:14 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:22:48: stale bloop error: Found:    (x : String ~ fos.Term ~ String)
+Required: fos.Term
+                          | "("~term~")"^^{x=>(x)}
+                                               ^
+2022.10.12 12:46:14 INFO  file:///Users/marijalazaroska/Desktop/FoundationsOfSoftware/2-untyped/src/main/scala/fos/Untyped.scala:22:48: stale bloop error: Found:    (x : String ~ fos.Term ~ String)
+Required: fos.Term
+                          | "("~term~")"^^{x=>(x)}
+                                               ^
+Oct 12, 2022 12:46:17 PM scala.meta.internal.pc.CompilerAccess handleError
+SEVERE: NoDenotation.owner
+java.lang.AssertionError: NoDenotation.owner
+	at dotty.tools.dotc.core.SymDenotations$NoDenotation$.owner(SymDenotations.scala:2499)
+	at scala.meta.internal.pc.SignatureHelpProvider$.isValid(SignatureHelpProvider.scala:88)
+	at scala.meta.internal.pc.SignatureHelpProvider$.notCurrentApply(SignatureHelpProvider.scala:99)
+	at scala.meta.internal.pc.SignatureHelpProvider$.$anonfun$1(SignatureHelpProvider.scala:49)
+	at scala.collection.StrictOptimizedLinearSeqOps.loop$3(LinearSeq.scala:280)
+	at scala.collection.StrictOptimizedLinearSeqOps.dropWhile(LinearSeq.scala:282)
+	at scala.collection.StrictOptimizedLinearSeqOps.dropWhile$(LinearSeq.scala:278)
+	at scala.collection.immutable.List.dropWhile(List.scala:79)
+	at scala.meta.internal.pc.SignatureHelpProvider$.signatureHelp(SignatureHelpProvider.scala:49)
+
+2022.10.12 12:46:21 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:46:21 INFO  time: compiled root-2-untyped in 0.42s
+2022.10.12 12:46:39 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:46:40 INFO  time: compiled root-2-untyped in 1.25s
+Oct 12, 2022 12:47:09 PM org.eclipse.lsp4j.jsonrpc.RemoteEndpoint handleCancellation
+WARNING: Unmatched cancel notification for request id 2498
+2022.10.12 12:54:23 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:54:23 INFO  time: compiled root-2-untyped in 0.71s
+2022.10.12 12:58:54 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:58:54 INFO  time: compiled root-2-untyped in 0.65s
+2022.10.12 12:59:29 INFO  compiling root-2-untyped (1 scala source)
+2022.10.12 12:59:29 INFO  time: compiled root-2-untyped in 0.78s
+2022.10.12 13:17:44 INFO  shutting down Metals
+2022.10.12 13:17:44 INFO  Shut down connection with build server.
+2022.10.12 13:17:44 INFO  Shut down connection with build server.
