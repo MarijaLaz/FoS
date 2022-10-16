@@ -2,6 +2,7 @@ package fos
 
 import scala.util.parsing.combinator.syntactical.StandardTokenParsers
 import scala.util.parsing.input._
+import scala.quoted.Expr
 
 /** This object implements a parser and evaluator for the
  *  untyped lambda calculus found in Chapter 5 of
@@ -16,11 +17,25 @@ object Untyped extends StandardTokenParsers {
           | t t
           | '(' t ')'
    */
-  def term: Parser[Term] =  ident^^{x=>Var(x)}
+
+  /* Use fold left for this
+  * Useful links:
+  * http://allaboutscala.com/tutorials/chapter-8-beginner-tutorial-using-scala-collection-functions/scala-foldleft-example/
+  * https://stackoverflow.com/questions/7764197/difference-between-foldleft-and-reduceleft-in-scala
+  * https://commitlogs.com/2016/09/10/scala-fold-foldleft-and-foldright/
+  * 
+  * Last one is especially useful! Do read!
+  * 
+  * foldleft implementation: rep(terms) -> reducelist.foldleft()(App(_, _))
+  * 
+  */
+  def term: Parser[Term] =  
+                           ident^^{x=>Var(x)}
                           | "\\"~ident~"."~term^^{ case _ ~ variable ~ _ ~ term1=> Abs(variable, term1)}
+                          | "("~term~")"^^{case "("~x~")"=>x}
                           | term~term^^{case term1~term2 => App(term1,term2)}
-                          | "("~term~")"^^{case "("~x~")"=>(x)}
-    
+
+  
   // def parentRecursive(t:Term): Term = t match{
   //   case "("~t1~")" => parentRecursive(t1)
   //   case Var(t1) => Var(t1)

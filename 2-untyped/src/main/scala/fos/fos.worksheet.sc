@@ -5,5 +5,9 @@ def parse[T](str: String, parser: Parser[T]) =
 
 
 parse("x", term)
-parse("y", term)
+parse("x y", term)
+parse("(y)", term)
 parse("\\x. x", term)
+parse("\\x. \\y. x y x", term)
+parse("\\x. \\y. x y ", term)
+// parse("\\x.(\\y.x y)", term)
