@@ -29,12 +29,18 @@ object Untyped extends StandardTokenParsers {
   * foldleft implementation: rep(terms) -> reducelist.foldleft()(App(_, _))
   * 
   */
-  def term: Parser[Term] =  
-                           ident^^{x=>Var(x)}
-                          | "\\"~ident~"."~term^^{ case _ ~ variable ~ _ ~ term1=> Abs(variable, term1)}
-                          | "("~term~")"^^{case "("~x~")"=>x}
-                          | term~term^^{case term1~term2 => App(term1,term2)}
 
+  // Let this be either the smallest unit, ie, either variable, abstraction or let it be ( term ) 
+  def termlet =
+    ident^^{x=>Var(x)}
+    | "\\"~ident~"."~term^^{ case _ ~ variable ~ _ ~ term1=> Abs(variable, term1)}
+    | "("~term~")"^^{case "("~x~")"=>x} // don't think this actually causes the problem that the warning claims
+    // | term~term^^{case term1~term2 => App(term1,term2)}
+
+  def term: Parser[Term] =
+    termlet ~ rep(term) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
+    // in its full form: 
+    // termlet ~ rep(term) ^^ {case tlet ~ tlist =>  tlist.foldLeft(tlet)((expsofar, newpart) => App(expsofar, newpart))}
   
   // def parentRecursive(t:Term): Term = t match{
   //   case "("~t1~")" => parentRecursive(t1)
