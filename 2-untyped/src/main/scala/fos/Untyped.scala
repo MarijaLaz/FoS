@@ -34,7 +34,7 @@ object Untyped extends StandardTokenParsers {
   def termlet =
     ident^^{x=>Var(x)}
     | "\\"~ident~"."~term^^{ case _ ~ variable ~ _ ~ term1=> Abs(variable, term1)}
-    | "("~term~")"^^{case "("~x~")"=>x} // don't think this actually causes the problem that the warning claims
+    | "("~term~")"^^{case _~x~_=>x} // don't think this actually causes the problem that the warning claims
     // | term~term^^{case term1~term2 => App(term1,term2)}
 
   def term: Parser[Term] =
@@ -125,26 +125,42 @@ object Untyped extends StandardTokenParsers {
    */
   def reduceNormalOrder(t: Term): Term = {
     t match {
-      case Var(x) => Var(x)
-      case Abs(x, t1) => Abs(x, reduceNormalOrder(t1))
+      // case Var(x) => throw new NoReductionPossible(t)
+      case Abs(x, t1) => t1 match {
+          case Var(_) => throw new NoReductionPossible(t)
+          case _ => Abs(x, reduceNormalOrder(t1))
+        }
       case App(tt, s) => tt match {
-          case Abs(x1, t1) => reduceNormalOrder(subst(t1, x1, s))
+          case Abs(x1, t1) => {
+            var subs = subst(t1, x1, s)
+            subs match {
+              case Var(_) => subs
+              case _ => reduceNormalOrder(subs)
+            }
+          }
           case App(t1, t2) => App(reduceNormalOrder(t1), t2)
           case _ => throw new NoReductionPossible(t)
       }
+      // case Var(x) => Var(x)
+       case _ => throw new NoReductionPossible(t)
     }
   }
 
   /** Call by value reducer. */
   def reduceCallByValue(t: Term): Term = {
     t match {
-      case Var(x) => Var(x)
-      case Abs(x, t1) => Abs(x, t1)
       case App(tt, s) => tt match {
-          case Abs(x1, t1) => reduceNormalOrder(subst(t1, x1, s))
-          case App(t1, t2) => App(reduceNormalOrder(t1), t2)
+          case Abs(x1, t1) => {
+            var subs = subst(t1, x1, s)
+            subs match {
+              case Var(_) => subs
+              case _ => reduceNormalOrder(subs)
+            }
+          }
+          case App(t1, t2) => App(reduceCallByValue(t1), t2)
           case _ => throw new NoReductionPossible(t)
       }
+      case _ => throw new NoReductionPossible(t)
     }
   }
 

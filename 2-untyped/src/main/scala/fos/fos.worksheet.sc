@@ -28,8 +28,16 @@ alpha(parse("\\x. (\\y. x) y", term).get.asInstanceOf[fos.Abs])
 alpha(parse("(\\y. x)", term).get.asInstanceOf[fos.Abs])
 
 subst(parse(" (\\y. x)", term).get, "x", parse("y", term).get)
+subst(parse(" (\\y. x) y", term).get, "x", parse("y", term).get)
 
 parse("(\\x.x)((\\x.x)(\\z.(\\w.w)z))", term)
+parse("\\z.(\\w.w)z", term)
+// reduceNormalOrder((parse("(\\y.y)x", term).get))
+// reduceNormalOrder((parse("\\x.(\\y.y)x", term).get))
+// reduceNormalOrder((parse("\\z.(\\w.w)z", term).get))
 reduceNormalOrder((parse("(\\x.x)((\\x.x)(\\z.(\\w.w)z))", term).get))
 reduceNormalOrder((parse("\\y. ((\\x. x) y)", term).get))
 reduceCallByValue((parse("\\y. ((\\x. x) y)", term).get))
+reduceCallByValue((parse("(\\x. (\\y. x)) y", term).get))
+
+print(path((parse("(\\x. (\\y. x)) y", term).get), reduceCallByValue))
