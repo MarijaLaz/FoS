@@ -19,3 +19,17 @@ parse("\\x. y (x x)", term)
 parse("\\x. \\y. x y x", term)
 parse("\\x. \\y. x y ", term)
 // parse("\\x.(\\y.x y)", term)
+parse("\\z.(\\x.x) z",  term)
+parse("(\\x.x)((\\x.x)(\\z.(\\w.w)z))", term)
+parse("\\x. (\\y. x) y", term)
+parse("\\y. ((\\x. x) y)", term)
+
+alpha(parse("\\x. (\\y. x) y", term).get.asInstanceOf[fos.Abs])
+alpha(parse("(\\y. x)", term).get.asInstanceOf[fos.Abs])
+
+subst(parse(" (\\y. x)", term).get, "x", parse("y", term).get)
+
+parse("(\\x.x)((\\x.x)(\\z.(\\w.w)z))", term)
+reduceNormalOrder((parse("(\\x.x)((\\x.x)(\\z.(\\w.w)z))", term).get))
+reduceNormalOrder((parse("\\y. ((\\x. x) y)", term).get))
+reduceCallByValue((parse("\\y. ((\\x. x) y)", term).get))

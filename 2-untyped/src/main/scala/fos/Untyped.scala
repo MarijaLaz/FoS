@@ -50,7 +50,13 @@ object Untyped extends StandardTokenParsers {
   // }
 
 
-
+  // def isFV(s: Term, y: String): Boolean = {
+  //   s match{
+  //     case Var(z) => return true
+  //     case Abs(z, t1) => if (z==y){return false}else{return isFV(t1, y)}
+  //     case App(t1, t2) => return isFV(t1, y) && isFV(t2, y)
+  //   }
+  // }
                             
 
   /** <p>
@@ -65,9 +71,22 @@ object Untyped extends StandardTokenParsers {
    *  @param t the given lambda abstraction.
    *  @return  the transformed term with bound variables renamed.
    */
-  def alpha(t: Abs): Abs =
-    ???
+  var counter: Int = 0
+  def alpha(t: Abs): Abs = {
+    var new_name: String = t.v+counter.toString
+    counter+=1
+    
+    def replace(term:Term, valueToBeReplaced: String, new_value: String): Term = {
+      term match {
+        case Var(x) => if(x==valueToBeReplaced){Var(new_name)}else{Var(x)}
+        case Abs(x,t1) => if(x==valueToBeReplaced){Abs(x,t1)}else{Abs(x, replace(t1, valueToBeReplaced, new_value))}
+        case App(t1, t2) => App(replace(t1, valueToBeReplaced, new_value),replace(t2, valueToBeReplaced, new_value))
+      }
+    } 
+    var new_term: Term = replace(t.t, t.v, new_name)
+    return Abs(new_name, new_term)
 
+  }
   /** Straight forward substitution method
    *  (see definition 5.3.5 in TAPL book).
    *  [x -> s]t
@@ -77,8 +96,24 @@ object Untyped extends StandardTokenParsers {
    *  @param s the term we replace x with
    *  @return  ...
    */
-  def subst(t: Term, x: String, s: Term): Term =
-    ???
+  def subst(t: Term, x: String, s: Term): Term = {
+    
+    def isFV(s: Term, y: String): Boolean = {
+      s match{
+        case Var(z) => if(z == y){return false}else{return true}
+        case Abs(z, t1) => if (z==y){return false}else{return isFV(t1, y)}
+        case App(t1, t2) => return isFV(t1, y) && isFV(t2, y)
+      }
+    }
+
+    t match {
+      case Var(y) => if(y==x){s}else{Var(y)}
+      case Abs(y, t1) => if(y==x){Abs(y,t1)}else{if(isFV(s, y)){Abs(y, subst(t1, x, s))}else{
+         subst(alpha(Abs(y, t1)), x, s)
+      }}
+      case App(t1, t2) => App(subst(t1, x, s), subst(t2, x, s))
+    }
+  }
 
   /** Term 't' does not match any reduction rule. */
   case class NoReductionPossible(t: Term) extends Exception(t.toString)
@@ -88,12 +123,30 @@ object Untyped extends StandardTokenParsers {
    *  @param t the initial term
    *  @return  the reduced term
    */
-  def reduceNormalOrder(t: Term): Term =
-    ???
+  def reduceNormalOrder(t: Term): Term = {
+    t match {
+      case Var(x) => Var(x)
+      case Abs(x, t1) => Abs(x, reduceNormalOrder(t1))
+      case App(tt, s) => tt match {
+          case Abs(x1, t1) => reduceNormalOrder(subst(t1, x1, s))
+          case App(t1, t2) => App(reduceNormalOrder(t1), t2)
+          case _ => throw new NoReductionPossible(t)
+      }
+    }
+  }
 
   /** Call by value reducer. */
-  def reduceCallByValue(t: Term): Term =
-    ???
+  def reduceCallByValue(t: Term): Term = {
+    t match {
+      case Var(x) => Var(x)
+      case Abs(x, t1) => Abs(x, t1)
+      case App(tt, s) => tt match {
+          case Abs(x1, t1) => reduceNormalOrder(subst(t1, x1, s))
+          case App(t1, t2) => App(reduceNormalOrder(t1), t2)
+          case _ => throw new NoReductionPossible(t)
+      }
+    }
+  }
 
   /** Returns a stream of terms, each being one step of reduction.
    *
