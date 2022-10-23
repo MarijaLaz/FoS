@@ -49,7 +49,7 @@ object Untyped extends StandardTokenParsers {
     termlet ~ rep(termlet) ^^ reduceList
 
   def reduceList: Term ~ List[Term] => Term =
-    case term1 ~ term2 => term2.foldLeft(term1)(App(_, _))
+    case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))
 
   /** <p>
    *    Alpha conversion: term <code>t</code> should be a lambda abstraction
