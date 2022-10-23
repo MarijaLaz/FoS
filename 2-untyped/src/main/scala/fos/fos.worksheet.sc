@@ -5,6 +5,7 @@ def parse[T](str: String, parser: Parser[T]) =
 
 
 parse("x", term)
+parse("((((x))))", term)
 parse("x y", term)
 parse("x y z", term)
 parse("(x y) z", term)
@@ -37,7 +38,9 @@ parse("\\z.(\\w.w)z", term)
 // reduceNormalOrder((parse("\\z.(\\w.w)z", term).get))
 reduceNormalOrder((parse("(\\x.x)((\\x.x)(\\z.(\\w.w)z))", term).get))
 reduceNormalOrder((parse("\\y. ((\\x. x) y)", term).get))
-reduceCallByValue((parse("\\y. ((\\x. x) y)", term).get))
-reduceCallByValue((parse("(\\x. (\\y. x)) y", term).get))
+// reduceCallByValue((parse("\\y. ((\\x. x) y)", term).get))
+// reduceCallByValue((parse("(\\x. (\\y. x)) y", term).get))
 
-print(path((parse("(\\x. (\\y. x)) y", term).get), reduceCallByValue))
+// print(path((parse("(\\x. (\\y. x)) y", term).get), reduceCallByValue))
+
+parse("(\\x.(\\y.x(y)))", term)

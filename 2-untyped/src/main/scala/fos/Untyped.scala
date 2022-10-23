@@ -33,31 +33,23 @@ object Untyped extends StandardTokenParsers {
   // Let this be either the smallest unit, ie, either variable, abstraction or let it be ( term ) 
   def termlet =
     ident^^{x=>Var(x)}
-    | "\\"~ident~"."~term^^{ case _ ~ variable ~ _ ~ term1=> Abs(variable, term1)}
-    | "("~term~")"^^{case _~x~_=>x} // don't think this actually causes the problem that the warning claims
-    // | term~term^^{case term1~term2 => App(term1,term2)}
+    | ("\\"~>ident)~("."~>term)^^{ case variable ~ term1=> Abs(variable, term1)}
+    | "("~term~")"^^{case _~x~_=>x}
+    // | "("~>term<~")" // don't think this actually causes the problem that the warning claims
+    // | term~term^^{case term1~term2 => App(term1,term2)} // don't use this, use the list instead
 
-  def term: Parser[Term] =
-    termlet ~ rep(term) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
+    
+  // def term: Parser[Term] =
+  //   termlet ~ rep(term) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
     // in its full form: 
     // termlet ~ rep(term) ^^ {case tlet ~ tlist =>  tlist.foldLeft(tlet)((expsofar, newpart) => App(expsofar, newpart))}
   
-  // def parentRecursive(t:Term): Term = t match{
-  //   case "("~t1~")" => parentRecursive(t1)
-  //   case Var(t1) => Var(t1)
-  //   case Abs(x,t1) => Abs(x,t1)
-  //   case
-  // }
+  // Get all single terms (termlets) into a list
+  def term: Parser[Term] =
+    termlet ~ rep(termlet) ^^ reduceList
 
-
-  // def isFV(s: Term, y: String): Boolean = {
-  //   s match{
-  //     case Var(z) => return true
-  //     case Abs(z, t1) => if (z==y){return false}else{return isFV(t1, y)}
-  //     case App(t1, t2) => return isFV(t1, y) && isFV(t2, y)
-  //   }
-  // }
-                            
+  def reduceList: Term ~ List[Term] => Term =
+    case term1 ~ term2 => term2.foldLeft(term1)(App(_, _))
 
   /** <p>
    *    Alpha conversion: term <code>t</code> should be a lambda abstraction
