@@ -33,14 +33,18 @@ subst(parse(" (\\y. x) y", term).get, "x", parse("y", term).get)
 
 parse("(\\x.x)((\\x.x)(\\z.(\\w.w)z))", term)
 parse("\\z.(\\w.w)z", term)
-// reduceNormalOrder((parse("(\\y.y)x", term).get))
-// reduceNormalOrder((parse("\\x.(\\y.y)x", term).get))
-// reduceNormalOrder((parse("\\z.(\\w.w)z", term).get))
+reduceNormalOrder((parse("(\\y.y)x", term).get))
+reduceNormalOrder((parse("\\x.(\\y.y)x", term).get))
+reduceNormalOrder((parse("\\z.(\\w.w)z", term).get))
 reduceNormalOrder((parse("(\\x.x)((\\x.x)(\\z.(\\w.w)z))", term).get))
 reduceNormalOrder((parse("\\y. ((\\x. x) y)", term).get))
-// reduceCallByValue((parse("\\y. ((\\x. x) y)", term).get))
-// reduceCallByValue((parse("(\\x. (\\y. x)) y", term).get))
+reduceNormalOrder((parse("\\y. ((\\x. x) y)", term).get))
+parse("(\\x. (\\y. x)) y", term)
 
-// print(path((parse("(\\x. (\\y. x)) y", term).get), reduceCallByValue))
+
+reduceNormalOrder((parse("(\\x. (\\y. x)) y", term).get))
+reduceNormalOrder((parse("(\\x. (\\y. x)) y", term).get))
+
+print(path((parse("(\\x. (\\y. x)) y", term).get), reduceCallByValue))
 
 parse("(\\x.(\\y.x(y)))", term)

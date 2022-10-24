@@ -79,6 +79,8 @@ object Untyped extends StandardTokenParsers {
     return Abs(new_name, new_term)
 
   }
+
+
   /** Straight forward substitution method
    *  (see definition 5.3.5 in TAPL book).
    *  [x -> s]t
@@ -110,47 +112,51 @@ object Untyped extends StandardTokenParsers {
   /** Term 't' does not match any reduction rule. */
   case class NoReductionPossible(t: Term) extends Exception(t.toString)
 
+// def full_beta(t: Term): Term = {
+//   t match {
+//     case Var(x) => throw new NoReductionPossible(t)
+//     case App(t1, t2) => 
+//   }
+// }
+
   /** Normal order (leftmost, outermost redex first).
    *
    *  @param t the initial term
    *  @return  the reduced term
    */
   def reduceNormalOrder(t: Term): Term = {
+
     t match {
-      // case Var(x) => throw new NoReductionPossible(t)
-      case Abs(x, t1) => t1 match {
-          case Var(_) => throw new NoReductionPossible(t)
-          case _ => Abs(x, reduceNormalOrder(t1))
-        }
-      case App(tt, s) => tt match {
-          case Abs(x1, t1) => {
-            var subs = subst(t1, x1, s)
-            subs match {
-              case Var(_) => subs
-              case _ => reduceNormalOrder(subs)
-            }
-          }
-          case App(t1, t2) => App(reduceNormalOrder(t1), t2)
-          case _ => throw new NoReductionPossible(t)
+    
+      case App(t1, t2) => t1 match {
+        case App(t11, t22) => App(reduceNormalOrder(t1), t2)
+        case Var(x) => App(t1, reduceNormalOrder(t2))
+        case Abs(v, t3) => subst(t2, v, t3)
       }
-      // case Var(x) => Var(x)
-       case _ => throw new NoReductionPossible(t)
+      
+      case Abs(v, t1) => Abs(v, reduceNormalOrder(t1))
+
+      case Var(x) => throw new NoReductionPossible(t)
+
     }
   }
 
   /** Call by value reducer. */
   def reduceCallByValue(t: Term): Term = {
     t match {
-      case App(tt, s) => tt match {
-          case Abs(x1, t1) => {
-            var subs = subst(t1, x1, s)
-            subs match {
-              case Var(_) => subs
-              case _ => reduceNormalOrder(subs)
-            }
+      case App(t1, t2) => t1 match {
+        case Abs(v, tt) => t2 match { // t2 has to be an abstraction or something that reduces to one
+          case Abs(vv, ttt) => subst(tt, v, t2)
+          case Var(name) => throw new NoReductionPossible(t)
+          case App(_, _) => reduceCallByValue(t2) match{
+            case Abs(v, t) => subst(tt, v, reduceCallByValue((t2)))
+            case _ =>throw new NoReductionPossible(t)
           }
-          case App(t1, t2) => App(reduceCallByValue(t1), t2)
-          case _ => throw new NoReductionPossible(t)
+        }
+
+        case App(t1, t2) => App(reduceCallByValue(t1), t2)
+
+        case Var(x) => throw new NoReductionPossible(t)
       }
       case _ => throw new NoReductionPossible(t)
     }
