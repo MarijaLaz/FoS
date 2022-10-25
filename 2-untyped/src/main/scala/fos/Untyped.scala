@@ -107,6 +107,60 @@ object Untyped extends StandardTokenParsers {
     }
   }
 
+
+  def full_beta(t: Term): Term = {
+    t match {
+      case Var(x) => throw new NoReductionPossible(t)
+      case App(t1, t2) => t1 match
+        case Var(_) => App(t1, full_beta(t2))
+        case App(t11, t12) => App(full_beta(t1), t2)
+        case Abs(v, t) => subst(t, v, t2)
+      case Abs(x, t) => Abs(x, full_beta(t))
+    }
+  }
+
+  // return true if can't reduce further, false if car
+  def normal_form(t: Term): Boolean = {
+    t match
+      case Var(_) => return true
+
+      case Abs(_, t1) => return normal_form(t1)
+
+      case App(t1, t2) => t1 match
+        case Abs(_, _) => return false
+        case _ => return (normal_form(t1) && normal_form(t2)) // iff both t1 and t2 can't be reduced
+      
+  }
+
+   def reduceNormalOrder(t: Term): Term = {
+    t match
+      case App(t1, t2) => t1 match
+        // case Abs(v, t3) => subst(t3, v, t2)
+        case Abs(v, t3) => {
+          if(normal_form(t3))
+            subst(t3, v, t2)
+          else
+            App(Abs(v, reduceNormalOrder(t3)), t2)
+        }
+        case _ => // non-abstraction forms
+          if(normal_form(t1))
+            if(normal_form(t2))
+              throw new NoReductionPossible(t)
+            else
+              App(t1, reduceNormalOrder(t2))
+          else
+            App(reduceNormalOrder(t1), t2)
+
+      case Abs(v, t1) => 
+        if(normal_form(t1))
+          throw new NoReductionPossible(t)
+        else
+          Abs(v, reduceNormalOrder(t1))
+
+      case _ => throw new NoReductionPossible(t)
+
+  }
+
   def reducableNormalOrder(term: Term): Boolean = term match {
     case Var(_) => false // stuck term
     case Abs(_,_) => true // is a value
@@ -121,28 +175,28 @@ object Untyped extends StandardTokenParsers {
    *  @param t the initial term
    *  @return  the reduced term
    */
-  def reduceNormalOrder(t: Term): Term = {
-    t match {
-      // case Var(x) => throw new NoReductionPossible(t)
-      case Abs(x, t1) => t1 match {
-          case Var(_) => throw new NoReductionPossible(t)
-          case _ => Abs(x, reduceNormalOrder(t1))
-        }
-      case App(tt, s) => tt match {
-          case Abs(x1, t1) => {
-            var subs = subst(t1, x1, s)
-            subs match {
-              case Var(_) => subs
-              case _ => reduceNormalOrder(subs)
-            }
-          }
-          case App(t1, t2) => App(reduceNormalOrder(t1), t2)
-          case _ => throw new NoReductionPossible(t)
-      }
-      // case Var(x) => Var(x)
-       case _ => throw new NoReductionPossible(t)
-    }
-  }
+  // def reduceNormalOrder(t: Term): Term = {
+  //   t match {
+  //     // case Var(x) => throw new NoReductionPossible(t)
+  //     case Abs(x, t1) => t1 match {
+  //         case Var(_) => throw new NoReductionPossible(t)
+  //         case _ => Abs(x, reduceNormalOrder(t1))
+  //       }
+  //     case App(tt, s) => tt match {
+  //         case Abs(x1, t1) => {
+  //           var subs = subst(t1, x1, s)
+  //           subs match {
+  //             case Var(_) => subs
+  //             case _ => reduceNormalOrder(subs)
+  //           }
+  //         }
+  //         case App(t1, t2) => App(reduceNormalOrder(t1), t2)
+  //         case _ => throw new NoReductionPossible(t)
+  //     }
+  //     // case Var(x) => Var(x)
+  //      case _ => throw new NoReductionPossible(t)
+  //   }
+  // }
 
   def reducableByValue(term: Term): Boolean = term match {
     // checks if a term can be reduced
