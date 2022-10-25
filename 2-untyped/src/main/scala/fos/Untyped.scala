@@ -123,33 +123,72 @@ object Untyped extends StandardTokenParsers {
   /** Term 't' does not match any reduction rule. */
   case class NoReductionPossible(t: Term) extends Exception(t.toString)
 
-// def full_beta(t: Term): Term = {
-//   t match {
-//     case Var(x) => throw new NoReductionPossible(t)
-//     case App(t1, t2) => 
-//   }
-// }
+  def full_beta(t: Term): Term = {
+    t match {
+      case Var(x) => throw new NoReductionPossible(t)
+      case App(t1, t2) => t1 match
+        case Var(_) => App(t1, full_beta(t2))
+        case App(t11, t12) => App(full_beta(t1), t2)
+        case Abs(v, t) => subst(t, v, t2)
+      case Abs(x, t) => Abs(x, full_beta(t))
+    }
+  }
 
+  // return true if can't reduce further, false if car
+  def normal_form(t: Term): Boolean = {
+    t match
+      case Var(_) => return true
+
+      case Abs(_, t1) => return normal_form(t1)
+
+      case App(t1, t2) => t1 match
+        case Abs(_, _) => return false
+        case _ => return (normal_form(t1) && normal_form(t2)) // iff both t1 and t2 can't be reduced
+      
+  }
   /** Normal order (leftmost, outermost redex first).
    *
    *  @param t the initial term
    *  @return  the reduced term
    */
-  def reduceNormalOrder(t: Term): Term = {
+  // def reduceNormalOrder2(t: Term): Term = {
 
-    t match {
+  //   t match {
     
-      case App(t1, t2) => t1 match {
-        case App(t11, t22) => App(reduceNormalOrder(t1), t2)
-        case Var(x) => App(t1, reduceNormalOrder(t2))
-        case Abs(v, t3) => subst(t2, v, t3)
-      }
+  //     case App(t1, t2) => t1 match {
+  //       case App(t11, t22) => App(reduceNormalOrder(t1), t2)
+  //       case Var(x) => App(t1, reduceNormalOrder(t2))
+  //       case Abs(v, t3) => subst(t2, v, t3)
+  //     }
       
-      case Abs(v, t1) => Abs(v, reduceNormalOrder(t1))
+  //     case Abs(v, t1) => Abs(v, reduceNormalOrder(t1))
 
-      case Var(x) => throw new NoReductionPossible(t)
+  //     case Var(x) => throw new NoReductionPossible(t)
 
-    }
+  //   }
+  // }
+
+  def reduceNormalOrder(t: Term): Term = {
+    t match
+      case App(t1, t2) => t1 match
+        case Abs(v, t3) => subst(t2, v, t3)
+        case _ => // non-abstraction forms
+          if(normal_form(t1))
+            if(normal_form(t2))
+              throw new NoReductionPossible(t)
+            else
+              App(t1, reduceNormalOrder(t2))
+          else
+            App(reduceNormalOrder(t1), t2)
+
+      case Abs(v, t1) => 
+        if(normal_form(t1))
+          throw new NoReductionPossible(t)
+        else
+          Abs(v, reduceNormalOrder(t1))
+
+      case _ => throw new NoReductionPossible(t)
+
   }
 
   /** Call by value reducer. */
