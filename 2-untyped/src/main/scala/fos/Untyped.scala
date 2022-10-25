@@ -92,19 +92,25 @@ object Untyped extends StandardTokenParsers {
     
     def isFV(s: Term, y: String): Boolean = {
       s match{
-        case Var(z) => if(z == y){return false}else{return true}
+        case Var(z) => if(z == y){return true}else{return false}
         case Abs(z, t1) => if (z==y){return false}else{return isFV(t1, y)}
-        case App(t1, t2) => return isFV(t1, y) && isFV(t2, y)
+        case App(t1, t2) => return isFV(t1, y) || isFV(t2, y)
       }
     }
 
     t match {
       case Var(y) => if(y==x){s}else{Var(y)}
-      case Abs(y, t1) => if(y==x){Abs(y,t1)}else{if(isFV(s, y)){Abs(y, subst(t1, x, s))}else{
+      case Abs(y, t1) => if(y==x){Abs(y,t1)}else{if(!isFV(s, y)){Abs(y, subst(t1, x, s))}else{
          subst(alpha(Abs(y, t1)), x, s)
       }}
       case App(t1, t2) => App(subst(t1, x, s), subst(t2, x, s))
     }
+  }
+
+  def reducableNormalOrder(term: Term): Boolean = term match {
+    case Var(_) => false // stuck term
+    case Abs(_,_) => true // is a value
+    case App(_,_) => reducableByValue(reduceNormalOrder(term))
   }
 
   /** Term 't' does not match any reduction rule. */
@@ -138,20 +144,27 @@ object Untyped extends StandardTokenParsers {
     }
   }
 
+  def reducableByValue(term: Term): Boolean = term match {
+    // checks if a term can be reduced
+    case Var(_) => false // stuck term
+    case Abs(_,_) => true // is a value
+    case App(_,_) => reducableByValue(reduceCallByValue(term))
+  }
+
+
   /** Call by value reducer. */
   def reduceCallByValue(t: Term): Term = {
     t match {
       case App(tt, s) => tt match {
-          case Abs(x1, t1) => {
-            var subs = subst(t1, x1, s)
-            subs match {
-              case Var(_) => subs
-              case _ => reduceNormalOrder(subs)
-            }
-          }
-          case App(t1, t2) => App(reduceCallByValue(t1), t2)
-          case _ => throw new NoReductionPossible(t)
+          case Abs(x1, t1) => if(reducableByValue(s)){subst(t1, x1, s)} else {throw new NoReductionPossible(t)}
+            // var subs = subst(t1, x1, s)
+            // subs match {
+            //   case Var(_) => subs
+            //   case _ => reduceNormalOrder(subs)
+            // }
+          case t1: Term => if(reducableByValue(t1)){App(reduceCallByValue(t1), s)}else {throw new NoReductionPossible(t)}
       }
+      
       case _ => throw new NoReductionPossible(t)
     }
   }
