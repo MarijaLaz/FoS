@@ -151,7 +151,7 @@ object Untyped extends StandardTokenParsers {
    *  @param t the initial term
    *  @return  the reduced term
    */
-  // def reduceNormalOrder2(t: Term): Term = {
+  // def reduceNormalOrder(t: Term): Term = {
 
   //   t match {
     
@@ -171,7 +171,13 @@ object Untyped extends StandardTokenParsers {
   def reduceNormalOrder(t: Term): Term = {
     t match
       case App(t1, t2) => t1 match
-        case Abs(v, t3) => subst(t3, v, t2)
+        // case Abs(v, t3) => subst(t3, v, t2)
+        case Abs(v, t3) => {
+          if(normal_form(t3))
+            subst(t3, v, t2)
+          else
+            App(Abs(v, reduceNormalOrder(t3)), t2)
+        }
         case _ => // non-abstraction forms
           if(normal_form(t1))
             if(normal_form(t2))
