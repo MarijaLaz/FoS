@@ -39,18 +39,11 @@ object Untyped extends StandardTokenParsers {
     // | term~term^^{case term1~term2 => App(term1,term2)} // don't use this, use the list instead
 
     
-  // def term: Parser[Term] =
-  //   termlet ~ rep(term) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
+  def term: Parser[Term] =
+    termlet ~ rep(termlet) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
     // in its full form: 
     // termlet ~ rep(term) ^^ {case tlet ~ tlist =>  tlist.foldLeft(tlet)((expsofar, newpart) => App(expsofar, newpart))}
   
-  // Get all single terms (termlets) into a list
-  def term: Parser[Term] =
-    termlet ~ rep(termlet) ^^ reduceList
-
-  def reduceList: Term ~ List[Term] => Term =
-    case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))
-
   /** <p>
    *    Alpha conversion: term <code>t</code> should be a lambda abstraction
    *    <code>\x. t</code>.
