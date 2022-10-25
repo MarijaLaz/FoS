@@ -94,17 +94,28 @@ object Untyped extends StandardTokenParsers {
     
     def isFV(s: Term, y: String): Boolean = {
       s match{
-        case Var(z) => if(z == y){return false}else{return true}
-        case Abs(z, t1) => if (z==y){return false}else{return isFV(t1, y)}
-        case App(t1, t2) => return isFV(t1, y) && isFV(t2, y)
+        case Var(z) => if(z == y){return true}else{return false}
+        case Abs(z, t1) => if (z == y){return false}else{return isFV(t1, y)}
+        case App(t1, t2) => return isFV(t1, y) || isFV(t2, y)
       }
     }
 
     t match {
-      case Var(y) => if(y==x){s}else{Var(y)}
-      case Abs(y, t1) => if(y==x){Abs(y,t1)}else{if(isFV(s, y)){Abs(y, subst(t1, x, s))}else{
-         subst(alpha(Abs(y, t1)), x, s)
-      }}
+      case Var(y) => if(y==x){s}else{Var(y)} 
+      // case Abs(y, t1) => if(y==x){Abs(y,t1)}else{if(isFV(s, y)){Abs(y, subst(t1, x, s))}else{
+      //    subst(alpha(Abs(y, t1)), x, s)
+      // }}
+      case Abs(y, t1) => {
+        if(y == x){
+          Abs(y, t1) // to avoid substituting only bound variables
+        }
+        else if(isFV(s, y) == false){
+          Abs(y, subst(t1, x, s))
+        }
+        else{
+          subst(alpha(Abs(y, t1)), x, s)
+        }
+      }
       case App(t1, t2) => App(subst(t1, x, s), subst(t2, x, s))
     }
   }
