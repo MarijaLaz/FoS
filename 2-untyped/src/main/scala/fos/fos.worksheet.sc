@@ -19,7 +19,7 @@ parse("\\x. (y x) x", term)
 parse("\\x. y (x x)", term)
 parse("\\x. \\y. x y x", term)
 parse("\\x. \\y. x y ", term)
-// parse("\\x.(\\y.x y)", term)
+parse("\\x.(\\y.x y)", term)
 parse("\\z.(\\x.x) z",  term)
 parse("(\\x.x)((\\x.x)(\\z.(\\w.w)z))", term)
 parse("\\x. (\\y. x) y", term)
@@ -39,6 +39,10 @@ reduceNormalOrder((parse("\\z.(\\w.w)z", term).get))
 reduceNormalOrder((parse("(\\x.x)((\\x.x)(\\z.(\\w.w)z))", term).get))
 reduceNormalOrder((parse("\\y. ((\\x. x) y)", term).get))
 reduceNormalOrder((parse("\\y. ((\\x. x) y)", term).get))
+normal_form(((parse("\\y. ((\\x. x) y)", term).get)))
+
+
+
 parse("(\\x. (\\y. x)) y", term)
 
 
@@ -46,5 +50,13 @@ reduceNormalOrder((parse("(\\x. (\\y. x)) y", term).get))
 reduceNormalOrder((parse("(\\x. (\\y. x)) y", term).get))
 
 print(path((parse("(\\x. (\\y. x)) y", term).get), reduceCallByValue))
+print(path((parse("(\\x. (\\y. x)) y", term).get), reduceCallByValue))
 
 parse("(\\x.(\\y.x(y)))", term)
+normal_form(parse("(\\x.(\\y.x(y)))", term).get)
+
+parse("(\\f.f y)(\\x.x)", term)
+print(parse("(\\f.f y)(\\x.x)", term).get, reduceNormalOrder)
+
+parse("(\\x.x x)((\\f.(f(f y)))(\\x.x))", term)
+print(parse("((\\x.(x x))((\\f.(f(fy)))(\\x.x)))", term).get, reduceNormalOrder)
