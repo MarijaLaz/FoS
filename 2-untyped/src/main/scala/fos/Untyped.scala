@@ -33,9 +33,9 @@ object Untyped extends StandardTokenParsers {
 
     
   def term: Parser[Term] =
-    termlet ~ rep(term) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
+    termlet ~ rep(termlet) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
     // in its full form: 
-    // termlet ~ rep(term) ^^ {case tlet ~ tlist =>  tlist.foldLeft(tlet)((expsofar, newpart) => App(expsofar, newpart))}
+    // termlet ~ rep(termlet) ^^ {case tlet ~ tlist =>  tlist.foldLeft(tlet)((expsofar, newpart) => App(expsofar, newpart))}
 
   /** <p>
    *    Alpha conversion: term <code>t</code> should be a lambda abstraction
@@ -115,9 +115,9 @@ object Untyped extends StandardTokenParsers {
       case App(t1, t2) => t1 match
         case Abs(_, _) => return false
         case _ => return (normal_form(t1) && normal_form(t2)) // iff both t1 and t2 can't be reduced
-      
   }
 
+  
    def reduceNormalOrder(t: Term): Term = {
     t match
       case App(t1, t2) => t1 match
@@ -148,33 +148,33 @@ object Untyped extends StandardTokenParsers {
    *  @return  the reduced term
    */
 
+  // Can the term potentially evaluate by call by value
   def shouldSubst(term: Term): Boolean = term match {
     case Var(_) => false 
     case Abs(_,_) => false 
     case App(t1,t2) => t1 match {
-      case Abs(_,_) => true
-      case _ => shouldSubst(t1) || shouldSubst(t2)
+      case Abs(_,_) => t2 match
+        case Abs(_, _) => true // the value that is being substituted should also be a "value", not a variable
+        case _ => shouldSubst(t2)
+      
+      case _ => shouldSubst(t1)
     }
-      //reducableByValue(reduceCallByValue(term))
   }
 
 
   /** Call by value reducer. */
   def reduceCallByValue(t: Term): Term = {
-    t match {
-      case App(tt, s) => tt match {
-          case Abs(x1, t1) => if(shouldSubst(s)){App(tt, reduceCallByValue(s))} else {subst(t1, x1, s)}
-            // var subs = subst(t1, x1, s)
-            // subs match {
-            //   case Var(_) => subs
-            //   case _ => reduceNormalOrder(subs)
-            // }
-          case _ => App(reduceCallByValue(tt), s)
-            //if(shouldSubst(tt)){App(reduceCallByValue(tt), s)}else {throw new NoReductionPossible(t)}
-      }
-      
+    t match
+      case App(tt, s) => tt match
+        case Abs(x1, t1) => 
+          if(shouldSubst(s))
+            App(tt, reduceCallByValue(s))
+          else s match
+            case Var(_) => throw new NoReductionPossible(t)
+            case _ => subst(t1, x1, s)
+        case Var(_) => throw new NoReductionPossible(t)
+        case App(_, _) => App(reduceCallByValue(tt), s)
       case _ => throw new NoReductionPossible(t)
-    }
   }
 
   /** Returns a stream of terms, each being one step of reduction.
