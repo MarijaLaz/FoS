@@ -19,15 +19,10 @@ object Untyped extends StandardTokenParsers {
    */
 
   /* Use fold left for this
-  * Useful links:
-  * http://allaboutscala.com/tutorials/chapter-8-beginner-tutorial-using-scala-collection-functions/scala-foldleft-example/
-  * https://stackoverflow.com/questions/7764197/difference-between-foldleft-and-reduceleft-in-scala
+  * Useful link:
   * https://commitlogs.com/2016/09/10/scala-fold-foldleft-and-foldright/
   * 
-  * Last one is especially useful! Do read!
-  * 
   * foldleft implementation: rep(terms) -> reducelist.foldleft()(App(_, _))
-  * 
   */
 
   // Let this be either the smallest unit, ie, either variable, abstraction or let it be ( term ) 
@@ -35,15 +30,13 @@ object Untyped extends StandardTokenParsers {
     ident^^{x=>Var(x)}
     | ("\\"~>ident)~("."~>term)^^{ case variable ~ term1=> Abs(variable, term1)}
     | "("~term~")"^^{case _~x~_=>x}
-    // | "("~>term<~")" // don't think this actually causes the problem that the warning claims
-    // | term~term^^{case term1~term2 => App(term1,term2)} // don't use this, use the list instead
 
     
   def term: Parser[Term] =
     termlet ~ rep(term) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
     // in its full form: 
     // termlet ~ rep(term) ^^ {case tlet ~ tlist =>  tlist.foldLeft(tlet)((expsofar, newpart) => App(expsofar, newpart))}
-  
+
   /** <p>
    *    Alpha conversion: term <code>t</code> should be a lambda abstraction
    *    <code>\x. t</code>.
@@ -78,7 +71,7 @@ object Untyped extends StandardTokenParsers {
    *
    *  @param t the term in which we perform substitution
    *  @param x the variable name
-   *  @param s the term we replace x with
+   *  @param s the term we replace x withsv
    *  @return  ...
    */
   def subst(t: Term, x: String, s: Term): Term = {
@@ -100,7 +93,7 @@ object Untyped extends StandardTokenParsers {
     }
   }
 
-
+  // full beta reduction
   def full_beta(t: Term): Term = {
     t match {
       case Var(x) => throw new NoReductionPossible(t)
@@ -112,7 +105,7 @@ object Untyped extends StandardTokenParsers {
     }
   }
 
-  // return true if can't reduce further, false if car
+  // return true if can't reduce further, false if can
   def normal_form(t: Term): Boolean = {
     t match
       case Var(_) => return true
@@ -128,19 +121,10 @@ object Untyped extends StandardTokenParsers {
    def reduceNormalOrder(t: Term): Term = {
     t match
       case App(t1, t2) => t1 match
-        // case Abs(v, t3) => subst(t3, v, t2)
-        case Abs(v, t3) => {
-          if(normal_form(t3))
-            subst(t3, v, t2)
-          else
-            App(Abs(v, reduceNormalOrder(t3)), t2)
-        }
+        case Abs(v, t3) => subst(t3, v, t2)
         case _ => // non-abstraction forms
           if(normal_form(t1))
-            if(normal_form(t2))
-              throw new NoReductionPossible(t)
-            else
-              App(t1, reduceNormalOrder(t2))
+            App(t1, reduceNormalOrder(t2))
           else
             App(reduceNormalOrder(t1), t2)
 
@@ -154,11 +138,6 @@ object Untyped extends StandardTokenParsers {
 
   }
 
-  def reducableNormalOrder(term: Term): Boolean = term match {
-    case Var(_) => false // stuck term
-    case Abs(_,_) => true // is a value
-    case App(_,_) => reducableByValue(reduceNormalOrder(term))
-  }
 
   /** Term 't' does not match any reduction rule. */
   case class NoReductionPossible(t: Term) extends Exception(t.toString)
@@ -168,34 +147,15 @@ object Untyped extends StandardTokenParsers {
    *  @param t the initial term
    *  @return  the reduced term
    */
-  // def reduceNormalOrder(t: Term): Term = {
-  //   t match {
-  //     // case Var(x) => throw new NoReductionPossible(t)
-  //     case Abs(x, t1) => t1 match {
-  //         case Var(_) => throw new NoReductionPossible(t)
-  //         case _ => Abs(x, reduceNormalOrder(t1))
-  //       }
-  //     case App(tt, s) => tt match {
-  //         case Abs(x1, t1) => {
-  //           var subs = subst(t1, x1, s)
-  //           subs match {
-  //             case Var(_) => subs
-  //             case _ => reduceNormalOrder(subs)
-  //           }
-  //         }
-  //         case App(t1, t2) => App(reduceNormalOrder(t1), t2)
-  //         case _ => throw new NoReductionPossible(t)
-  //     }
-  //     // case Var(x) => Var(x)
-  //      case _ => throw new NoReductionPossible(t)
-  //   }
-  // }
 
-  def reducableByValue(term: Term): Boolean = term match {
-    // checks if a term can be reduced
-    case Var(_) => false // stuck term
-    case Abs(_,_) => true // is a value
-    case App(_,_) => reducableByValue(reduceCallByValue(term))
+  def shouldSubst(term: Term): Boolean = term match {
+    case Var(_) => false 
+    case Abs(_,_) => false 
+    case App(t1,t2) => t1 match {
+      case Abs(_,_) => true
+      case _ => shouldSubst(t1) || shouldSubst(t2)
+    }
+      //reducableByValue(reduceCallByValue(term))
   }
 
 
@@ -203,13 +163,14 @@ object Untyped extends StandardTokenParsers {
   def reduceCallByValue(t: Term): Term = {
     t match {
       case App(tt, s) => tt match {
-          case Abs(x1, t1) => if(reducableByValue(s)){subst(t1, x1, s)} else {throw new NoReductionPossible(t)}
+          case Abs(x1, t1) => if(shouldSubst(s)){App(tt, reduceCallByValue(s))} else {subst(t1, x1, s)}
             // var subs = subst(t1, x1, s)
             // subs match {
             //   case Var(_) => subs
             //   case _ => reduceNormalOrder(subs)
             // }
-          case t1: Term => if(reducableByValue(t1)){App(reduceCallByValue(t1), s)}else {throw new NoReductionPossible(t)}
+          case _ => App(reduceCallByValue(tt), s)
+            //if(shouldSubst(tt)){App(reduceCallByValue(tt), s)}else {throw new NoReductionPossible(t)}
       }
       
       case _ => throw new NoReductionPossible(t)
