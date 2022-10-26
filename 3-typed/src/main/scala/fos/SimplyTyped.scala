@@ -28,9 +28,38 @@ object SimplyTyped extends StandardTokenParsers {
    *               | "fst" t
    *               | "snd" t
    */
-  def term: Parser[Term] =
-    ???
+  def termlet: Parser[Term] =  "true"^^^True 
+                          | "false"^^^False 
+                          | "if"~term~"then"~term~"else"~term^^{ case _ ~ cond ~ _ ~ ifTrue ~ _ ~ ifFalse => If(cond, ifTrue, ifFalse)}
+                          | numericLit^^(x=>numericLitRecursive(x.toInt))
+                          | "succ"~term^^{ case _~term => Succ(term)}
+                          | "pred"~term^^{ case _~term => Pred(term)}
+                          | "iszero"~term^^{ case _~term => IsZero(term) }
+                          | ident^^{x=>Var(x)}
+                          | ("\\"~>ident)~(":"~>lambda_type)~("."~>term)^^{ case variable ~ l_type ~ term1=> Abs(variable, l_type, term1)} //TOCHANGE
+                          | "("~term~")"^^{case _~x~_=>x}
+                         //| pair
+                         //| let
+                         //| fst
+                         //| snd
 
+
+  def numericLitRecursive(x: Int): Term = x match {
+    case 0 => Zero
+    case _ => Succ(numericLitRecursive(x-1))
+  }
+
+  def term: Parser[Term] =
+    termlet ~ rep(termlet) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
+
+
+  def lambda_typelet: Parser[Type] = "Bool"^^^TypeBool
+                                | "Nat"^^^TypeNat
+                                | lambda_type~"->"~lambda_type^^{case type1 ~ _ ~ type2 => TypeFun(type1, type2)}
+                                | "("~lambda_type~")"^^{case _~x~_=>x}
+
+  def lambda_type: Parser[Type] = 
+    lambda_typelet ~ rep(lambda_typelet) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(TypePair(_,_))}
 
   /** Thrown when no reduction rule applies to the given term. */
   case class NoRuleApplies(t: Term) extends Exception(t.toString)
