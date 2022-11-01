@@ -53,13 +53,20 @@ object SimplyTyped extends StandardTokenParsers {
     termlet ~ rep(termlet) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
 
 
-  def lambda_typelet: Parser[Type] = "Bool"^^^TypeBool
-                                | "Nat"^^^TypeNat
-                                | lambda_type~"->"~lambda_type^^{case type1 ~ _ ~ type2 => TypeFun(type1, type2)}
-                                | "("~lambda_type~")"^^{case _~x~_=>x}
+  // rep1sep[T](p: ⇒ Parser[T], q: ⇒ Parser[Any]) 
+  // repeatedly applies p interleaved with q to parse the input, until p fails. The parser p must succeed at least once
+  // so p=the term and q="->"
 
-  def lambda_type: Parser[Type] = 
-    lambda_typelet ~ rep(lambda_typelet) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(TypePair(_,_))}
+  def lambda_typelet: Parser[Type] = "Bool"^^^TypeBool
+                                  | "Nat"^^^TypeNat
+                                  | "("~lambda_type~")"^^{case _~x~_=>x}
+  
+  // why foldRight is not working?
+  // def lambda_type: Parser[Type] =
+  //   lambda_typelet ~ repsep(lambda_typelet,"->")^^{case type1 ~ types => types.foldRight(type1)(TypeFun(_, _))}
+ 
+  def lambda_type: Parser[Type] =
+    rep1sep(lambda_typelet,"->")^^{case types => types.reduceRight(TypeFun(_, _))}
 
   /** Thrown when no reduction rule applies to the given term. */
   case class NoRuleApplies(t: Term) extends Exception(t.toString)
