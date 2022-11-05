@@ -20,5 +20,7 @@ parse("{true, false}", term)
 parse("snd {true, false}", term)
 parse("\\x:Nat*Nat->Bool. x", term)
 parse("\\x:Nat*Nat->Bool*Nat. x", term)
+parse("true",term)
+// reduce(parse("true",term).get)
 
 reduce(parse("(\\x:Nat->Bool. (\\y:Nat.(x y))) (\\x:Nat.(iszero x)) 0", term).get)

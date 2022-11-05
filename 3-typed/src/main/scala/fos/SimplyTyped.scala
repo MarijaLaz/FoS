@@ -151,25 +151,36 @@ object SimplyTyped extends StandardTokenParsers {
   }
 
   // Can the term potentially evaluate by call by value
-  def shouldSubst(term: Term): Boolean = term match {
-    case Var(_) => false 
-    case Abs(_,_,_) => false 
+  def canReduce(term: Term): Boolean = term match {
     case App(t1,t2) => t1 match {
       case Abs(_,_,_) => t2 match
         case Abs(_,_,_) => true // the value that is being substituted should also be a "value", not a variable
-        case _ => shouldSubst(t2)
+        case _ => canReduce(t2)
       
-      case _ => shouldSubst(t1)
+      case _ => canReduce(t1)
     }
     //arithmetics  Don't know if we should add the values from arithmetics here
-    // case True => false
-    // case False => false
-    // case Zero => false
-    // case Succ(t) => shouldSubst(t)
+    case Succ(t) => canReduce(t)
+    case If(cond, t1, t2) => canReduce(cond) || canReduce(t1) || canReduce(t2)
+    case Pred(t) => canReduce(t)
+    case IsZero(t) => canReduce(t)
+    case TermPair(t1, t2) => canReduce(t1) || canReduce(t2)
+    case First(t) => canReduce(t)
+    case Second(t) => canReduce(t)
+    case _ => false
   }
 
 //----------- [END] functions from previous HW -----------------------//
 
+  def is_val(t: Term): Boolean = t match{
+    case True => true
+    case False => true
+    case Zero => true
+    case Succ(x) => is_val(x)
+    case Abs(_, _, _) => true
+    case TermPair(t1, t2) => is_val(t1) && is_val(t2)
+    case _ => false
+  }
   /** Call by value reducer. */
   def reduce(t: Term): Term = t match {
     //arithmetic
@@ -186,10 +197,9 @@ object SimplyTyped extends StandardTokenParsers {
 
 
     //untyped
-    
     case App(tt, s) => tt match {
       case Abs(x1,type1,t1) => {
-        if(shouldSubst(s))
+        if(canReduce(s))
           App(tt, reduce(s))
         else 
           s match {
@@ -200,6 +210,33 @@ object SimplyTyped extends StandardTokenParsers {
       case Var(_) => throw new NoRuleApplies(t)
       case App(_, _) => App(reduce(tt), s)
     }
+    //pairs
+    case First(TermPair(t1,t2)) => {
+      if(is_val(t1) && is_val(t2)){
+        t1
+      }
+      else{
+        throw new NoRuleApplies(t)
+      }
+    }
+
+    case Second(TermPair(t1,t2)) => {
+      if(is_val(t1) && is_val(t2)){
+        t2
+      }
+      else{
+        throw new NoRuleApplies(t)
+      }
+    }
+         
+    case First(t1) => First(reduce(t1))
+    case Second(t1) => Second(reduce(t1))
+    case TermPair(t1, t2) => 
+      if(is_val(t1))
+        TermPair(t1, reduce(t2))
+      else
+        TermPair(reduce(t1),t2)
+
     case _ => throw new NoRuleApplies(t)
   }
     
@@ -211,8 +248,19 @@ object SimplyTyped extends StandardTokenParsers {
    *  @param t   the given term
    *  @return    the computed type
    */
-  def typeof(ctx: Context, t: Term): Type =
-    ???
+  def typeof(ctx: Context, t: Term): Type = t match{
+    case True => TypeBool
+    case False => TypeBool
+    case Zero => TypeNat
+    case Pred(t1) => if(typeof(ctx,t1)==TypeNat) TypeNat
+    case Succ(t1) => if(typeof(ctx,t1)==TypeNat) TypeNat
+    case IsZero(t1) => if(typeof(ctx,t1)==TypeNat) TypeBool
+    case If(cond, t1, t2) => 
+      if((typeof(ctx,cond)==TypeBool) && (typeof(ctx,t1)==typeof(ctx,t2)))
+        typeof(ctx,t1)
+
+    _ => throw new TypeError(t,"if error on condition")
+  }
 
 
   /** Returns a stream of terms, each being one step of reduction.
