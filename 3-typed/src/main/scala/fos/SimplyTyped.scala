@@ -259,6 +259,8 @@ object SimplyTyped extends StandardTokenParsers {
       if((typeof(ctx,cond)==TypeBool) && (typeof(ctx,t1)==typeof(ctx,t2)))
         typeof(ctx,t1)
 
+    case Abs(x,type1,t1) =>  
+
     _ => throw new TypeError(t,"if error on condition")
   }
 
