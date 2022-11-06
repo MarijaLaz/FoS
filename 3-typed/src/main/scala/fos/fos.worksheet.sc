@@ -7,6 +7,7 @@ def parse[T](str: String, parser: Parser[T]) =
 
 parse("x", term)
 parse("succ 0", term)
+parse("pred 0", term)
 parse("iszero 0", term)
 parse("4", term)
 parse("(x x)", term)
@@ -21,6 +22,19 @@ parse("snd {true, false}", term)
 parse("\\x:Nat*Nat->Bool. x", term)
 parse("\\x:Nat*Nat->Bool*Nat. x", term)
 parse("true",term)
+reduce(parse("(\\x:Bool.x) true", term).get)
 // reduce(parse("true",term).get)
-
+parse("if true then true else false", term)
+// typeof(List[(String, Type)], parse("0", term).get)
+reduce(parse("(\\x:Nat->Bool.(\\y:Nat.(x y)))(\\x:Nat.(iszero x))",term).get)
+parse("\\y:Nat.(\\x:Nat.iszero x) y", term)
+parse("(\\x:Nat->Bool.(\\y:Nat.(x y)))(\\x:Nat.(iszero x))0",term)
 reduce(parse("(\\x:Nat->Bool. (\\y:Nat.(x y))) (\\x:Nat.(iszero x)) 0", term).get)
+reduce(parse("if true then false else false", term).get)
+
+(parse("\\y:Nat.(\\x:Nat.iszero x) y", term).get)
+(parse("(\\y:Nat.(\\x:Nat.iszero x)) y", term).get)
+
+reduce(parse("if true then if false then false else succ succ 0 else 0", term).get)
+reduce(parse("fst {iszero 0, false}", term).get)
+reduce(parse("fst {true, false}", term).get)

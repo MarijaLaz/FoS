@@ -104,12 +104,16 @@ object SimplyTyped extends StandardTokenParsers {
         //arithmetic
         case True => True
         case False => False
+        case Zero => Zero
         case Succ(t) => Succ(replace(t, valueToBeReplaced, new_value))
         case Pred(t) => Pred(replace(t, valueToBeReplaced, new_value))
         case If(cond, t1, t2) => If(replace(cond, valueToBeReplaced, new_value), replace(t1, valueToBeReplaced, new_value), replace(t2, valueToBeReplaced, new_value))
         case IsZero(t) => IsZero(replace(t, valueToBeReplaced, new_value))
 
         //new terms from typed
+        case TermPair(t1, t2) => TermPair(replace(t1, valueToBeReplaced, new_value), replace(t2, valueToBeReplaced, new_value))
+        case First(t) => First(replace(t, valueToBeReplaced, new_value))
+        case Second(t) => Second(replace(t, valueToBeReplaced, new_value))
       }
     } 
     var new_term: Term = replace(t.t, t.v, new_name)
@@ -124,13 +128,20 @@ object SimplyTyped extends StandardTokenParsers {
         case Var(z) => if(z == y){return true}else{return false}
         case Abs(z,type1,t1) => if (z==y){return false}else{return isFV(t1, y)}
         case App(t1, t2) => return isFV(t1, y) || isFV(t2, y)
+        
         // arithmetics
-        case True => false //not sure about these two
+        case True => false
         case False => false
+        case Zero => false
         case Succ(t) => isFV(t,y)
         case Pred(t) => isFV(t,y)
         case If(cond, t1, t2) => isFV(cond,y) || isFV(t1,y) || isFV(t2,y)
         case IsZero(t) => isFV(t,y)
+
+        // pairs
+        case TermPair(t1, t2) => isFV(t1, y) || isFV(t2, y)
+        case First(t) => isFV(t, y)
+        case Second(t) => isFV(t, y)
       }
     }
 
@@ -140,13 +151,20 @@ object SimplyTyped extends StandardTokenParsers {
          subst(alpha(Abs(y,type1,t1)), x, s)
       }}
       case App(t1, t2) => App(subst(t1, x, s), subst(t2, x, s))
-      // arithmetics
+      
+      // Arithmetics
       case True => True
       case False => False
+      case Zero => Zero
       case Succ(t) => Succ(subst(t,x,s))
       case Pred(t) => Pred(subst(t,x,s))
       case If(cond, t1, t2) => If(subst(cond, x, s), subst(t1, x, s), subst(t2, x, s))
       case IsZero(t) => IsZero(subst(t,x,s))
+
+      // Pairs
+      case TermPair(t1, t2) => TermPair(subst(t1, x, s), subst(t2, x, s))
+      case First(t) => First(subst(t, x, s))
+      case Second(t) => Second(subst(t, x, s))
     }
   }
 
@@ -155,6 +173,9 @@ object SimplyTyped extends StandardTokenParsers {
     case App(t1,t2) => t1 match {
       case Abs(_,_,_) => t2 match
         case Abs(_,_,_) => true // the value that is being substituted should also be a "value", not a variable
+        case True => true 
+        case False => true 
+        case nv => true
         case _ => canReduce(t2)
       
       case _ => canReduce(t1)
@@ -182,7 +203,9 @@ object SimplyTyped extends StandardTokenParsers {
     case _ => false
   }
   /** Call by value reducer. */
-  def reduce(t: Term): Term = t match {
+  def reduce(t: Term): Term =
+    
+    t match {
     //arithmetic
     case If(True, t1, _) => t1
     case If(False, _, t2) => t2
@@ -190,44 +213,48 @@ object SimplyTyped extends StandardTokenParsers {
     case IsZero(Succ(nv)) => False
     case Pred(Zero) => Zero
     case Pred(Succ(nv)) => nv
-    case If(t1, t2, t3) => If(reduce(t1), t2, t3) 
+    case If(t1, t2, t3) => If(reduce(t1), t2, t3)
     case IsZero(t1) => IsZero(reduce(t1))
     case Pred(t1) => Pred(reduce(t1))
     case Succ(t1) => Succ(reduce(t1))
 
 
     //untyped
-    case App(tt, s) => tt match {
-      case Abs(x1,type1,t1) => {
+    case App(tt, s) =>
+      tt match {
+      case Abs(x1, type1, t1) => {
         if(canReduce(s))
           App(tt, reduce(s))
-        else 
-          s match {
-            case Var(_) => throw new NoRuleApplies(t)
-            case _ => subst(t1, x1, s)
-          }
+        else
+          // println("Hey0")
+          if(is_val(s))
+            subst(t1, x1, s)
+          else 
+          // subst(t1, x1, s)
+          throw new NoRuleApplies(t)
       }
-      case Var(_) => throw new NoRuleApplies(t)
-      case App(_, _) => App(reduce(tt), s)
+      case _ =>
+        if(canReduce(t))
+          App(reduce(tt), s)
+        else
+          throw new NoRuleApplies(t)
     }
     //pairs
-    case First(TermPair(t1,t2)) => {
-      if(is_val(t1) && is_val(t2)){
-        t1
-      }
-      else{
-        throw new NoRuleApplies(t)
-      }
-    }
+    case First(TermPair(t1,t2))
+      if(is_val(t1) && is_val(t2))
+        => t1
+      // else{
+      //   throw new NoRuleApplies(t)
+      // }
 
-    case Second(TermPair(t1,t2)) => {
-      if(is_val(t1) && is_val(t2)){
-        t2
-      }
-      else{
-        throw new NoRuleApplies(t)
-      }
-    }
+    case Second(TermPair(t1,t2))  
+      if(is_val(t1) && is_val(t2))
+        => t2
+      
+      // else{
+      //   throw new NoRuleApplies(t)
+      // }
+    
          
     case First(t1) => First(reduce(t1))
     case Second(t1) => Second(reduce(t1))
@@ -237,10 +264,13 @@ object SimplyTyped extends StandardTokenParsers {
       else
         TermPair(reduce(t1),t2)
 
-    case _ => throw new NoRuleApplies(t)
+    case _ =>
+      throw new NoRuleApplies(t)
   }
     
-
+  def error_msg(t_found: Term, t_exp: Term): String = {
+    return t_exp.toString + " type expected but " + t_found.toString
+  }
 
   /** Returns the type of the given term <code>t</code>.
    *
@@ -252,16 +282,33 @@ object SimplyTyped extends StandardTokenParsers {
     case True => TypeBool
     case False => TypeBool
     case Zero => TypeNat
-    case Pred(t1) => if(typeof(ctx,t1)==TypeNat) TypeNat
-    case Succ(t1) => if(typeof(ctx,t1)==TypeNat) TypeNat
-    case IsZero(t1) => if(typeof(ctx,t1)==TypeNat) TypeBool
+    case Pred(t1) => 
+      if(typeof(ctx, t1)==TypeNat)
+        TypeNat
+      else
+        throw new TypeError(t, "")
+    case Succ(t1) => 
+      if(typeof(ctx, t1)==TypeNat)
+        TypeNat
+      else
+        throw new TypeError(t, "")
+    case IsZero(t1) => 
+      if(typeof(ctx, t1)==TypeNat)
+        TypeNat
+      else
+        throw new TypeError(t, "")
     case If(cond, t1, t2) => 
       if((typeof(ctx,cond)==TypeBool) && (typeof(ctx,t1)==typeof(ctx,t2)))
         typeof(ctx,t1)
+      else
+        throw new TypeError(t, "")
+      
+    // case Var(x) =>
+      
 
-    case Abs(x,type1,t1) =>  
+    // case Abs(x, type1, t1) =>
 
-    _ => throw new TypeError(t,"if error on condition")
+    case _ => throw new TypeError(t,"")
   }
 
 
@@ -272,6 +319,7 @@ object SimplyTyped extends StandardTokenParsers {
    *  @return       the stream of terms representing the big reduction.
    */
   def path(t: Term, reduce: Term => Term): LazyList[Term] =
+    
     try {
       var t1 = reduce(t)
       LazyList.cons(t, path(t1, reduce))
@@ -285,6 +333,8 @@ object SimplyTyped extends StandardTokenParsers {
     val tokens = new lexical.Scanner(stdin.readLine())
     phrase(term)(tokens) match {
       case Success(trees, _) =>
+        for (t <- path(trees, reduce))
+            println(t)
         try {
           println("typed: " + typeof(Nil, trees))
           for (t <- path(trees, reduce))
