@@ -277,7 +277,7 @@ object SimplyTyped extends StandardTokenParsers {
       case(vname, typ) if(vname == var_search) =>
         return true
     }
-    return false // will never reach here
+    return false
   }
 
   def gamma_get(ctx: Context, var_search: String): Type = {
@@ -285,7 +285,7 @@ object SimplyTyped extends StandardTokenParsers {
       case(vname, typ) if(vname == var_search) =>
         return typ
     }
-    return TypeNat // will never reach here
+    return TypeBool // will never reach here
   }
 
   /** Returns the type of the given term <code>t</code>.
@@ -329,6 +329,16 @@ object SimplyTyped extends StandardTokenParsers {
       case TypeFun(type11, type12) => typeof(ctx, t2) match
         case type11 => type12
 
+    case TermPair(t1, t2) => TypePair(typeof(ctx, t1), typeof(ctx, t2))
+
+    case First(t) => t match
+      case TermPair(t1, _) => typeof(ctx, t1)
+      case _ => throw new TypeError(t, "")
+
+    case Second(t) => t match
+      case TermPair(_, t2) => typeof(ctx, t2)
+      case _ => throw new TypeError(t, "")
+    
     case _ => throw new TypeError(t,"")
   }
 
@@ -354,8 +364,8 @@ object SimplyTyped extends StandardTokenParsers {
     val tokens = new lexical.Scanner(stdin.readLine())
     phrase(term)(tokens) match {
       case Success(trees, _) =>
-        for (t <- path(trees, reduce))
-            println(t)
+        // for (t <- path(trees, reduce))
+        //     println(t)
         try {
           println("typed: " + typeof(Nil, trees))
           for (t <- path(trees, reduce))
