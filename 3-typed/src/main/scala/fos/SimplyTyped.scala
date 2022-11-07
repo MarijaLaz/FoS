@@ -272,6 +272,22 @@ object SimplyTyped extends StandardTokenParsers {
     return t_exp.toString + " type expected but " + t_found.toString
   }
 
+  def gamma_has(ctx: Context, var_search: String): Boolean = {
+    ctx.foreach {
+      case(vname, typ) if(vname == var_search) =>
+        return true
+    }
+    return false // will never reach here
+  }
+
+  def gamma_get(ctx: Context, var_search: String): Type = {
+    ctx.foreach {
+      case(vname, typ) if(vname == var_search) =>
+        return typ
+    }
+    return TypeNat // will never reach here
+  }
+
   /** Returns the type of the given term <code>t</code>.
    *
    *  @param ctx the initial context
@@ -303,10 +319,15 @@ object SimplyTyped extends StandardTokenParsers {
       else
         throw new TypeError(t, "")
       
-    // case Var(x) =>
+    case Var(x) if gamma_has(ctx, x) => gamma_get(ctx, x)
       
+    case Abs(x, type1, t1) =>
+      // ctx :+ List(x, type1) // Adding x to our context
+      TypeFun(type1, typeof(ctx :+ (x, type1), t1))
 
-    // case Abs(x, type1, t1) =>
+    case App(t1, t2) => typeof(ctx, t1) match // T1 -> T2, this will be when t1 is an abstraction, right?
+      case TypeFun(type11, type12) => typeof(ctx, t2) match
+        case type11 => type12
 
     case _ => throw new TypeError(t,"")
   }
