@@ -273,10 +273,13 @@ object SimplyTyped extends StandardTokenParsers {
   }
 
   def gamma_has(ctx: Context, var_search: String): Boolean = {
+    println("Looking for (in func) " + var_search) // Search has a problem
     ctx.foreach {
       case(vname, typ) if(vname == var_search) =>
+        print("Found " + var_search)
         return true
     }
+    print("Couldn't find " + var_search)
     return false
   }
 
@@ -294,7 +297,9 @@ object SimplyTyped extends StandardTokenParsers {
    *  @param t   the given term
    *  @return    the computed type
    */
-  def typeof(ctx: Context, t: Term): Type = t match{
+  def typeof(ctx: Context, t: Term): Type =
+    // println(t)
+    t match{
     case True => TypeBool
     case False => TypeBool
     case Zero => TypeNat
@@ -319,13 +324,29 @@ object SimplyTyped extends StandardTokenParsers {
       else
         throw new TypeError(t, "")
       
-    case Var(x) if gamma_has(ctx, x) => gamma_get(ctx, x)
+    case Var(x)
+    if gamma_has(ctx, x) =>
+      println("Looking for " + x) // Search has a problem
+      gamma_get(ctx, x)
+
       
     case Abs(x, type1, t1) =>
       // ctx :+ List(x, type1) // Adding x to our context
-      TypeFun(type1, typeof(ctx :+ (x, type1), t1))
+      println("-abs-")
+      println(x)
+      println(type1)
+      println(t1)
+      println("-abs-")
+      println("Adding " + x + " to context")
+      TypeFun(type1, typeof((x, type1) +: ctx, t1))
+      // Prepend works, not append, probably because the first element stays null otherwise
 
-    case App(t1, t2) => typeof(ctx, t1) match // T1 -> T2, this will be when t1 is an abstraction, right?
+    case App(t1, t2) =>
+      println("-app-")
+      println(t1)
+      println(t2)
+      println("-app-")
+      typeof(ctx, t1) match // T1 -> T2, this will be when t1 is an abstraction, right?
       case TypeFun(type11, type12) => typeof(ctx, t2) match
         case type11 => type12
 
