@@ -182,10 +182,27 @@ object SimplyTyped extends StandardTokenParsers {
     }
     //arithmetics  Don't know if we should add the values from arithmetics here
     case Succ(t) => canReduce(t)
-    case If(cond, t1, t2) => canReduce(cond) || canReduce(t1) || canReduce(t2)
-    case Pred(t) => canReduce(t)
-    case IsZero(t) => canReduce(t)
-    case TermPair(t1, t2) => canReduce(t1) || canReduce(t2)
+    case If(cond, t1, t2) => {
+      cond match {
+        case True => canReduce(t1) && canReduce(t2)
+        case False => canReduce(t1) && canReduce(t2)
+        case _ => canReduce(If(reduce(cond), t1, t2))
+        
+      }
+    }
+    case Pred(t) => is_num(t)
+    case IsZero(t) => is_num(t)
+    case TermPair(t1, t2) => {
+      if(canReduce(t1)){
+        true
+      }else{
+        if(is_val(t1))
+        canReduce((t2))
+        else
+          false
+      }
+    }
+        
     case First(t) => canReduce(t)
     case Second(t) => canReduce(t)
     case _ => false
@@ -193,11 +210,17 @@ object SimplyTyped extends StandardTokenParsers {
 
 //----------- [END] functions from previous HW -----------------------//
 
+  def is_num(x: Term): Boolean = x match {
+      case Zero => true
+      case Succ(t) => is_num(t)
+      case _ => false
+    }
+
   def is_val(t: Term): Boolean = t match{
     case True => true
     case False => true
     case Zero => true
-    case Succ(x) => is_val(x)
+    case Succ(x) => is_num(x)
     case Abs(_, _, _) => true
     case TermPair(t1, t2) => is_val(t1) && is_val(t2)
     case _ => false
@@ -223,21 +246,19 @@ object SimplyTyped extends StandardTokenParsers {
     case App(tt, s) =>
       tt match {
       case Abs(x1, type1, t1) => {
-        if(canReduce(s))
-          App(tt, reduce(s))
-        else
-          // println("Hey0")
-          if(is_val(s))
+        if(is_val(s)){
             subst(t1, x1, s)
-          else 
-          // subst(t1, x1, s)
-          throw new NoRuleApplies(t)
+        }
+        else{
+          App(tt, reduce(s))
+        }
       }
       case _ =>
-        if(canReduce(t))
-          App(reduce(tt), s)
+        if(is_val(tt)){
+          App(tt, reduce(s))
+        }
         else
-          throw new NoRuleApplies(t)
+          App(reduce(tt), s)
     }
     //pairs
     case First(TermPair(t1,t2))
@@ -315,7 +336,7 @@ object SimplyTyped extends StandardTokenParsers {
         throw new TypeError(t, "")
     case IsZero(t1) => 
       if(typeof(ctx, t1)==TypeNat)
-        TypeNat
+        TypeBool
       else
         throw new TypeError(t, "")
     case If(cond, t1, t2) => 
@@ -341,26 +362,37 @@ object SimplyTyped extends StandardTokenParsers {
       // println("-abs-")
       // println("Adding " + x + " to context")
       // TypeFun(type1, typeof(ctx.++(x, type1), t1))
-      TypeFun(type1, typeof(ctx :+ (x, type1), t1))
+      //if ctx.exists(_._1 == x) => // This works
+      var n_term = alpha(t.asInstanceOf[fos.Abs])
+      var new_name = n_term.v
+      var new_term = n_term.t
+      TypeFun(type1, typeof(ctx :+ (new_name, type1) , new_term))
       // Prepend works, not append, probably because the first element stays null otherwise
 
     case App(t1, t2) =>
-      // println("-app-")
-      // println(t1)
-      // println(t2)
-      // println("-app-")
-      typeof(ctx, t1) match // T1 -> T2, this will be when t1 is an abstraction, right?
-      case TypeFun(type11, type12) => typeof(ctx, t2) match
-        case type11 => type12
+      typeof(ctx, t1) match {// T1 -> T2, this will be when t1 is an abstraction, right?
+        case TypeFun(type11, type12) => {
+            if(type11== typeof(ctx, t2)) {
+              type12
+            }else{
+              throw new TypeError(t,"")
+            }
+          }
+      }
+      // case _: Type => throw new TypeError(t, "")
 
     case TermPair(t1, t2) => TypePair(typeof(ctx, t1), typeof(ctx, t2))
 
-    case First(t) => t match
-      case TermPair(t1, _) => typeof(ctx, t1)
+    // case First(tt) => tt match
+    //   case TermPair(t1, _) => typeof(ctx, t1)
+    //   case _ => throw new TypeError(t, "")
+
+    case First(tt) => typeof(ctx, tt) match
+      case TypePair(t1, _) => t1
       case _ => throw new TypeError(t, "")
 
-    case Second(t) => t match
-      case TermPair(_, t2) => typeof(ctx, t2)
+    case Second(tt) => typeof(ctx, tt) match
+      case TypePair(_, t2) => t2
       case _ => throw new TypeError(t, "")
     
     case _ => throw new TypeError(t,"")
