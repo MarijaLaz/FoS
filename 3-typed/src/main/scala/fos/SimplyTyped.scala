@@ -176,7 +176,7 @@ object SimplyTyped extends StandardTokenParsers {
         case True => true 
         case False => true 
         case nv => true
-        case _ => canReduce(t2)
+        // case _ => canReduce(t2)
       
       case _ => canReduce(t1)
     }
@@ -289,28 +289,28 @@ object SimplyTyped extends StandardTokenParsers {
       throw new NoRuleApplies(t)
   }
     
-  def error_msg(t_found: Term, t_exp: Term): String = {
-    return t_exp.toString + " type expected but " + t_found.toString
+  def error_msg(t_exp: String, t_found: String): String = {
+    t_exp + " type expected but " + t_found + " found"
   }
 
-  def gamma_has(ctx: Context, var_search: String): Boolean = {
-    // println("Looking for (in func) " + var_search) // Search has a problem
-    ctx.foreach {
-      case(vname, typ) if(vname == var_search) =>
-        // print("Found " + var_search)
-        return true
-    }
-    // print("Couldn't find " + var_search)
-    return false
-  }
+  // def gamma_has(ctx: Context, var_search: String): Boolean = {
+  //   // println("Looking for (in func) " + var_search) // Search has a problem
+  //   ctx.foreach {
+  //     case(vname, typ) if(vname == var_search) =>
+  //       // print("Found " + var_search)
+  //       return true
+  //   }
+  //   // print("Couldn't find " + var_search)
+  //   return false
+  // }
 
-  def gamma_get(ctx: Context, var_search: String): Type = {
-    ctx.foreach {
-      case(vname, typ) if(vname == var_search) =>
-        return typ
-    }
-    return TypeBool // will never reach here
-  }
+  // def gamma_get(ctx: Context, var_search: String): Type = {
+  //   ctx.foreach {
+  //     case(vname, typ) if(vname == var_search) =>
+  //       return typ
+  //   }
+  //   return TypeBool // will never reach here
+  // }
 
   /** Returns the type of the given term <code>t</code>.
    *
@@ -327,22 +327,24 @@ object SimplyTyped extends StandardTokenParsers {
       if(typeof(ctx, t1)==TypeNat)
         TypeNat
       else
-        throw new TypeError(t, "")
+        throw new TypeError(t, error_msg(TypeNat.toString(), typeof(ctx, t1).toString()))
     case Succ(t1) => 
       if(typeof(ctx, t1)==TypeNat)
         TypeNat
       else
-        throw new TypeError(t, "")
+        throw new TypeError(t, error_msg(TypeNat.toString(), typeof(ctx, t1).toString()))
     case IsZero(t1) => 
       if(typeof(ctx, t1)==TypeNat)
         TypeBool
       else
-        throw new TypeError(t, "")
+        throw new TypeError(t, error_msg(TypeNat.toString(), typeof(ctx, t1).toString()))
     case If(cond, t1, t2) => 
       if((typeof(ctx,cond)==TypeBool) && (typeof(ctx,t1)==typeof(ctx,t2)))
         typeof(ctx,t1)
+      else if(typeof(ctx,cond)!=TypeBool)
+        throw new TypeError(t, error_msg(TypeBool.toString(), typeof(ctx, t1).toString()))
       else
-        throw new TypeError(t, "")
+        throw new TypeError(t, "then has type " + typeof(ctx, t1) + " else has type " + typeof(ctx, t2))
       
     case Var(x)
     if ctx.exists(_._1 == x) => // This works
@@ -359,23 +361,23 @@ object SimplyTyped extends StandardTokenParsers {
               type12
             }
             else{
-              throw new TypeError(t,"Expected " + type11 + "found " + typeof(ctx, t2))
+              throw new TypeError(t, error_msg(type11.toString(), typeof(ctx, t2).toString())) // term on the right of app does not match input stipulated by the abs on the left
             }
           }
-          case _ => throw new TypeError(t,"Expected Typefun(T1, T2) found " + typeof(ctx, t1))
+          case _ => throw new TypeError(t, error_msg("Fun", typeof(ctx, t1).toString())) // always need an abs on the left on app
       }
 
     case TermPair(t1, t2) => TypePair(typeof(ctx, t1), typeof(ctx, t2))
 
     case First(tt) => typeof(ctx, tt) match
       case TypePair(t1, _) => t1
-      case _ => throw new TypeError(t, "")
+      case _ => throw new TypeError(t, error_msg("Pair", typeof(ctx, tt).toString()))
 
     case Second(tt) => typeof(ctx, tt) match
       case TypePair(_, t2) => t2
-      case _ => throw new TypeError(t, "")
+      case _ => throw new TypeError(t, error_msg("Pair", typeof(ctx, tt).toString()))
     
-    case _ => throw new TypeError(t,"")
+    case _ => throw new TypeError(t, "Parameter Type mismatch")
   }
 
 
