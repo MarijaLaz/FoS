@@ -40,6 +40,7 @@ reduce(parse("if true then if false then false else succ succ 0 else 0", term).g
 reduce(parse("fst {iszero 0, false}", term).get)
 reduce(parse("fst {true, false}", term).get)
 
+typeof(List.empty, parse("(\\x:Nat*Nat.iszero snd x) ({1, 2})", term).get)
 typeof(List.empty, parse("false", term).get)
 typeof(List.empty, parse("(\\x:Nat.iszero 0)", term).get)
 // typeof(List.empty, parse("(\\x:Nat.x) true", term).get)
@@ -47,6 +48,7 @@ typeof(List.empty, parse("(\\x:Bool.\\x:Nat.x)", term).get)
 typeof(List.empty, parse("(\\x:Nat.iszero x) 0", term).get)
 typeof(List.empty, parse("(\\y:Nat.(\\x:Nat.iszero x) y) 0", term).get)
 typeof(List.empty, parse("(\\x:Nat->Bool. (\\y:Nat.(x y))) (\\x:Nat.(iszero x)) 0", term).get)
+
 
 is_num(parse("succ pred 0", term).get)
 is_num(parse("succ true", term).get)

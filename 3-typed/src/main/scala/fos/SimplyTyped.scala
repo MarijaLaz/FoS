@@ -319,7 +319,6 @@ object SimplyTyped extends StandardTokenParsers {
    *  @return    the computed type
    */
   def typeof(ctx: Context, t: Term): Type =
-    // println(t)
     t match{
     case True => TypeBool
     case False => TypeBool
@@ -347,45 +346,26 @@ object SimplyTyped extends StandardTokenParsers {
       
     case Var(x)
     if ctx.exists(_._1 == x) => // This works
-    // if gamma_has(ctx, x) => // This doesn't for some reason
-      // println("Looking for " + x) // Search has a problem
       ctx.find(_._1 == x).get._2 // This works
-      // gamma_get(ctx, x) // This doesn't for some reason
 
       
     case Abs(x, type1, t1) =>
-      // ctx :+ List(x, type1) // Adding x to our context
-      // println("-abs-")
-      // println(x)
-      // println(type1)
-      // println(t1)
-      // println("-abs-")
-      // println("Adding " + x + " to context")
-      // TypeFun(type1, typeof(ctx.++(x, type1), t1))
-      //if ctx.exists(_._1 == x) => // This works
-      var n_term = alpha(t.asInstanceOf[fos.Abs])
-      var new_name = n_term.v
-      var new_term = n_term.t
-      TypeFun(type1, typeof(ctx :+ (new_name, type1) , new_term))
-      // Prepend works, not append, probably because the first element stays null otherwise
+      TypeFun(type1, typeof((x, type1) +: ctx, t1))
 
     case App(t1, t2) =>
       typeof(ctx, t1) match {// T1 -> T2, this will be when t1 is an abstraction, right?
         case TypeFun(type11, type12) => {
-            if(type11== typeof(ctx, t2)) {
+            if(type11 == typeof(ctx, t2)) {
               type12
-            }else{
-              throw new TypeError(t,"")
+            }
+            else{
+              throw new TypeError(t,"Expected " + type11 + "found " + typeof(ctx, t2))
             }
           }
+          case _ => throw new TypeError(t,"Expected Typefun(T1, T2) found " + typeof(ctx, t1))
       }
-      // case _: Type => throw new TypeError(t, "")
 
     case TermPair(t1, t2) => TypePair(typeof(ctx, t1), typeof(ctx, t2))
-
-    // case First(tt) => tt match
-    //   case TermPair(t1, _) => typeof(ctx, t1)
-    //   case _ => throw new TypeError(t, "")
 
     case First(tt) => typeof(ctx, tt) match
       case TypePair(t1, _) => t1
