@@ -14,7 +14,7 @@ object SimplyTypedExtended extends  StandardTokenParsers {
                               "pred", "iszero", "let", "in", "fst", "snd", "fix", "letrec",
                               "case", "of", "inl", "inr", "as")
 
-
+//------------------- [START] TERMS ----------------------------------
   /** t ::=          "true"
    *               | "false"
    *               | number
@@ -37,10 +37,51 @@ object SimplyTypedExtended extends  StandardTokenParsers {
    *               | "letrec" ident ":" T "=" t "in" t
    */
 
+  def termlet: Parser[Term] =  "true"^^^True 
+                          | "false"^^^False 
+                          | "if"~term~"then"~term~"else"~term^^{ case _ ~ cond ~ _ ~ ifTrue ~ _ ~ ifFalse => If(cond, ifTrue, ifFalse)}
+                          | numericLit^^(x=>numericLitRecursive(x.toInt))
+                          | "succ"~term^^{ case _~term => Succ(term)}
+                          | "pred"~term^^{ case _~term => Pred(term)}
+                          | "iszero"~term^^{ case _~term => IsZero(term) }
+                          | ident^^{x=>Var(x)}
+                          | ("\\"~>ident)~(":"~>lambda_type)~("."~>term)^^{ case variable ~ l_type ~ term1=> Abs(variable, l_type, term1)} 
+                          | "("~term~")"^^{case _~x~_=>x}
+                          | ("let"~>ident)~(":"~>lambda_type)~("="~>term)~("in"~>term)^^{case variable ~ l_type ~ t1 ~ t2 => App(Abs(variable,l_type,t2),t1)}
+                          | ("{"~>term)~","~(term<~"}")^^{case t1~_~t2 => TermPair(t1, t2)}
+                          | ("fst"~>term)^^{case t => First(t)}
+                          | ("snd"~>term)^^{case t => Second(t)}
+                          | ("inl"~>term)~("as"~>lambda_type)^^{case t~l_type => Inl(t, l_type)}                                    
+                          | ("inr"~>term)~("as"~>lambda_type)^^{case t~l_type => Inr(t, l_type)}                                    
+                          | ("case"~>term)~("of"~"inl"~>ident)~("=>"~>term)~("|"~"inr"~>ident)~("=>"~>term)^^{case t~x1~t1~x2~t2 => Case(t, x1, t1, x2, t2)} 
+
+
+  def numericLitRecursive(x: Int): Term = x match {
+    case 0 => Zero
+    case _ => Succ(numericLitRecursive(x-1))
+  }
+
   def term: Parser[Term] =
-    ???
+    termlet ~ rep(termlet) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
 
+//------------------- [END] TERMS ----------------------------------
+//------------------- [START] TYPES --------------------------------
+  def lambda_typelet: Parser[Type] = "Bool"^^^TypeBool
+                                  | "Nat"^^^TypeNat
+                                  | "("~lambda_type~")"^^{case _~x~_=>x}
 
+  def pairOrSum(left, right): Type = left match {
+    case leftside ~ str if str == "+" => TypeSum(leftside, right)
+    case leftside ~ str if str == "*" => TypePair(leftside, right)
+  }
+
+  def pair_sum_type: Parser[Type] = ???
+    //rep(lambda_typelet ~ ("*"|"+")) ~ lambda_typelet ^^{case types~nextType => types.foldRight(nextType)(pairOrSum(_, _))} //doesn't work
+  
+  def lambda_type: Parser[Type] =
+    rep1sep(pair_sum_type,"->")^^{case types => types.reduceRight(TypeFun(_, _))}
+
+//------------------- [END] TYPES --------------------------------
 
   /** Call by value reducer with a store. */
   def reduce(t: Term, store: Store): (Term, Store) = {
