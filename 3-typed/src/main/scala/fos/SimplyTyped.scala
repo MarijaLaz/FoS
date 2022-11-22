@@ -264,19 +264,11 @@ object SimplyTyped extends StandardTokenParsers {
     case First(TermPair(t1,t2))
       if(is_val(t1) && is_val(t2))
         => t1
-      // else{
-      //   throw new NoRuleApplies(t)
-      // }
 
     case Second(TermPair(t1,t2))  
       if(is_val(t1) && is_val(t2))
         => t2
-      
-      // else{
-      //   throw new NoRuleApplies(t)
-      // }
     
-         
     case First(t1) => First(reduce(t1))
     case Second(t1) => Second(reduce(t1))
     case TermPair(t1, t2) => 

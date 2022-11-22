@@ -70,18 +70,127 @@ object SimplyTypedExtended extends  StandardTokenParsers {
                                   | "Nat"^^^TypeNat
                                   | "("~lambda_type~")"^^{case _~x~_=>x}
 
-  def pairOrSum(left, right): Type = left match {
+  def pairOrSum(left: ~[Type,String], right: Type): Type = left match {
     case leftside ~ str if str == "+" => TypeSum(leftside, right)
     case leftside ~ str if str == "*" => TypePair(leftside, right)
   }
 
-  def pair_sum_type: Parser[Type] = ???
-    //rep(lambda_typelet ~ ("*"|"+")) ~ lambda_typelet ^^{case types~nextType => types.foldRight(nextType)(pairOrSum(_, _))} //doesn't work
+  def pair_sum_type: Parser[Type] = 
+    rep(lambda_typelet ~ ("*"|"+")) ~ lambda_typelet ^^{case types~nextType => types.foldRight(nextType)(pairOrSum(_, _))}
   
   def lambda_type: Parser[Type] =
     rep1sep(pair_sum_type,"->")^^{case types => types.reduceRight(TypeFun(_, _))}
 
 //------------------- [END] TYPES --------------------------------
+//------------------- [START] Functions from last assignement ----
+  def is_num(x: Term): Boolean = x match {
+      case Zero => true
+      case Succ(t) => is_num(t)
+      case _ => false
+  }
+
+  def is_val(t: Term): Boolean = t match{
+      case True => true
+      case False => true
+      case Zero => true
+      case Succ(x) => is_num(x)
+      case Abs(_, _, _) => true
+      case TermPair(t1, t2) => is_val(t1) && is_val(t2)
+      case Inl(tt, tpe) => is_val(tt)
+      case Inr(tt, tpe) => is_val(tt)
+      case _ => false
+  }
+
+  var counter: Int = 0
+  def alpha(t: Abs): Abs = {
+    var new_name: String = t.v+counter.toString
+    counter+=1
+    
+    def replace(term:Term, valueToBeReplaced: String, new_value: String): Term = {
+      term match {
+        // untyped
+        case Var(x) => if(x==valueToBeReplaced){Var(new_name)}else{Var(x)}
+        case Abs(x,type1,t1) => if(x==valueToBeReplaced){Abs(x,type1,t1)}else{Abs(x, type1, replace(t1, valueToBeReplaced, new_value))}
+        case App(t1, t2) => App(replace(t1, valueToBeReplaced, new_value),replace(t2, valueToBeReplaced, new_value))
+
+        // arithmetic
+        case True => True
+        case False => False
+        case Zero => Zero
+        case Succ(t) => Succ(replace(t, valueToBeReplaced, new_value))
+        case Pred(t) => Pred(replace(t, valueToBeReplaced, new_value))
+        case If(cond, t1, t2) => If(replace(cond, valueToBeReplaced, new_value), replace(t1, valueToBeReplaced, new_value), replace(t2, valueToBeReplaced, new_value))
+        case IsZero(t) => IsZero(replace(t, valueToBeReplaced, new_value))
+
+        // pairs
+        case TermPair(t1, t2) => TermPair(replace(t1, valueToBeReplaced, new_value), replace(t2, valueToBeReplaced, new_value))
+        case First(t) => First(replace(t, valueToBeReplaced, new_value))
+        case Second(t) => Second(replace(t, valueToBeReplaced, new_value))
+
+        // sum
+      }
+    } 
+    var new_term: Term = replace(t.t, t.v, new_name)
+    return Abs(new_name,t.tp,new_term)
+
+  }
+
+  def subst(t: Term, x: String, s: Term): Term = {
+    
+    def isFV(s: Term, y: String): Boolean = {
+      s match{
+        // untyped
+        case Var(z) => if(z == y){return true}else{return false}
+        case Abs(z,type1,t1) => if (z==y){return false}else{return isFV(t1, y)}
+        case App(t1, t2) => return isFV(t1, y) || isFV(t2, y)
+        
+        // arithmetics
+        case True => false
+        case False => false
+        case Zero => false
+        case Succ(t) => isFV(t,y)
+        case Pred(t) => isFV(t,y)
+        case If(cond, t1, t2) => isFV(cond,y) || isFV(t1,y) || isFV(t2,y)
+        case IsZero(t) => isFV(t,y)
+
+        // pairs
+        case TermPair(t1, t2) => isFV(t1, y) || isFV(t2, y)
+        case First(t) => isFV(t, y)
+        case Second(t) => isFV(t, y)
+
+        // sum
+        case Inl(tt, tpe) => isFV(tt, y)
+        case Inr(tt, tpe) => isFV(tt, y)
+        case Case(tt, x1, t1, x2, t2) => isFV(tt, y) || isFV(t1, y) || isFV(t2, y)
+      }
+    }
+
+    t match {
+      case Var(y) => if(y==x){s}else{Var(y)}
+      case Abs(y,type1,t1) => if(y==x){Abs(y,type1,t1)}else{if(!isFV(s, y)){Abs(y,type1,subst(t1, x, s))}else{
+         subst(alpha(Abs(y,type1,t1)), x, s)
+      }}
+      case App(t1, t2) => App(subst(t1, x, s), subst(t2, x, s))
+      
+      // Arithmetics
+      case True => True
+      case False => False
+      case Zero => Zero
+      case Succ(t) => Succ(subst(t,x,s))
+      case Pred(t) => Pred(subst(t,x,s))
+      case If(cond, t1, t2) => If(subst(cond, x, s), subst(t1, x, s), subst(t2, x, s))
+      case IsZero(t) => IsZero(subst(t,x,s))
+
+      // Pairs
+      case TermPair(t1, t2) => TermPair(subst(t1, x, s), subst(t2, x, s))
+      case First(t) => First(subst(t, x, s))
+      case Second(t) => Second(subst(t, x, s))
+
+      //sum
+
+    }
+  }
+//------------------- [END] Functions from last assignement ------
 
   /** Call by value reducer with a store. */
   def reduce(t: Term, store: Store): (Term, Store) = {
@@ -93,8 +202,67 @@ object SimplyTypedExtended extends  StandardTokenParsers {
   }
 
   /** Call by value reducer. */
-  def reduce(t: Term): Term =
-    ???
+  def reduce(t: Term): Term = t match {
+    //arithmetic
+    case If(True, t1, _) => t1
+    case If(False, _, t2) => t2
+    case IsZero(Zero) => True
+    case IsZero(Succ(nv)) => False
+    case Pred(Zero) => Zero
+    case Pred(Succ(nv)) => nv
+    case If(t1, t2, t3) => If(reduce(t1), t2, t3)
+    case IsZero(t1) => IsZero(reduce(t1))
+    case Pred(t1) => Pred(reduce(t1))
+    case Succ(t1) => Succ(reduce(t1))
+
+    //untyped
+    case App(tt, s) =>
+      tt match {
+      case Abs(x1, type1, t1) => {
+        if(is_val(s)){
+            subst(t1, x1, s)
+        }
+        else{
+          App(tt, reduce(s))
+        }
+      }
+      case _ =>
+        if(is_val(tt)){
+          App(tt, reduce(s))
+        }
+        else
+          App(reduce(tt), s)
+    }
+
+    //pairs
+    case First(TermPair(t1,t2))
+      if(is_val(t1) && is_val(t2))
+        => t1
+
+    case Second(TermPair(t1,t2))  
+      if(is_val(t1) && is_val(t2))
+        => t2
+    
+    case First(t1) => First(reduce(t1))
+    case Second(t1) => Second(reduce(t1))
+    case TermPair(t1, t2) => 
+      if(is_val(t1))
+        TermPair(t1, reduce(t2))
+      else
+        TermPair(reduce(t1),t2)
+    
+    //sum
+    case Case(tt, x1, t1, x2, t2) => tt match {
+      case Inl(v0, tpe) => subst(t1,x1,v0)
+      case Inr(v0, tpe) => subst(t2,x2,v0)
+      case _ => Case(reduce(tt), x1, t1, x2, t2)
+    }
+    case Inl(tt, tpe) => Inl(reduce(tt),tpe)
+    case Inr(tt, tpe) => Inr(reduce(tt),tpe)
+
+    case _ =>
+      throw new NoRuleApplies(t)
+  }
 
   /** Thrown when no reduction rule applies to the given term. */
   case class NoRuleApplies(t: Term) extends Exception(t.toString)
@@ -107,14 +275,89 @@ object SimplyTypedExtended extends  StandardTokenParsers {
   /** The context is a list of variable names paired with their type. */
   type Context = List[(String, Type)]
 
+  def error_msg(t_exp: String, t_found: String): String = {
+    t_exp + " type expected but " + t_found + " found"
+  }
+
   /** Returns the type of the given term <code>t</code>.
    *
    *  @param ctx the initial context
    *  @param t   the given term
    *  @return    the computed type
    */
-  def typeof(ctx: Context, t: Term): Type =
-    ???
+  def typeof(ctx: Context, t: Term): Type = t match {
+    // arithmetics
+    case True => TypeBool
+    case False => TypeBool
+    case Zero => TypeNat
+    case Pred(t1) => 
+      if(typeof(ctx, t1)==TypeNat)
+        TypeNat
+      else
+        throw new TypeError(t, error_msg(TypeNat.toString(), typeof(ctx, t1).toString()))
+    case Succ(t1) => 
+      if(typeof(ctx, t1)==TypeNat)
+        TypeNat
+      else
+        throw new TypeError(t, error_msg(TypeNat.toString(), typeof(ctx, t1).toString()))
+    case IsZero(t1) => 
+      if(typeof(ctx, t1)==TypeNat)
+        TypeBool
+      else
+        throw new TypeError(t, error_msg(TypeNat.toString(), typeof(ctx, t1).toString()))
+    case If(cond, t1, t2) => 
+      if((typeof(ctx,cond)==TypeBool) && (typeof(ctx,t1)==typeof(ctx,t2)))
+        typeof(ctx,t1)
+      else if(typeof(ctx,cond)!=TypeBool)
+        throw new TypeError(t, error_msg(TypeBool.toString(), typeof(ctx, t1).toString()))
+      else
+        throw new TypeError(t, "then has type " + typeof(ctx, t1) + " else has type " + typeof(ctx, t2))
+    
+    // untyped
+    case Var(x)
+      if ctx.exists(_._1 == x) => 
+        ctx.find(_._1 == x).get._2 
+
+    case Abs(x, type1, t1) =>
+      TypeFun(type1, typeof((x, type1) +: ctx, t1))
+
+    case App(t1, t2) =>
+      typeof(ctx, t1) match {// T1 -> T2, this will be when t1 is an abstraction, right?
+        case TypeFun(type11, type12) => {
+            if(type11 == typeof(ctx, t2)) {
+              type12
+            }
+            else{
+              throw new TypeError(t, error_msg(type11.toString(), typeof(ctx, t2).toString())) // term on the right of app does not match input stipulated by the abs on the left
+            }
+          }
+          case _ => throw new TypeError(t, error_msg("Fun", typeof(ctx, t1).toString())) // always need an abs on the left on app
+      }
+
+    // pairs
+    case TermPair(t1, t2) => TypePair(typeof(ctx, t1), typeof(ctx, t2))
+
+    case First(tt) => typeof(ctx, tt) match
+      case TypePair(t1, _) => t1
+      case _ => throw new TypeError(t, error_msg("Pair", typeof(ctx, tt).toString()))
+
+    case Second(tt) => typeof(ctx, tt) match
+      case TypePair(_, t2) => t2
+      case _ => throw new TypeError(t, error_msg("Pair", typeof(ctx, tt).toString()))
+
+    // sum
+    case Inl(t1, tpe) => tpe match {
+      case TypeSum(tt1, tt2) if typeof(ctx, t1)==tt1 => tpe
+      case _ => throw new TypeError(t, error_msg("Inl", typeof(ctx, t1).toString()))
+    }
+    case Inr(t1, tpe) => tpe match {
+      case TypeSum(tt1, tt2) if typeof(ctx, t1)==tt2 => tpe
+      case _ => throw new TypeError(t, error_msg("Inl", typeof(ctx, t1).toString()))
+    }
+    //case Case(tt, x1, t1, x2, t2) => 
+    
+    case _ => throw new TypeError(t, "Parameter Type mismatch")
+  }
 
   def typeof(t: Term): Type = try {
     typeof(Nil, t)
