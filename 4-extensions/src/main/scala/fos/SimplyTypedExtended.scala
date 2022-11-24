@@ -54,6 +54,8 @@ object SimplyTypedExtended extends  StandardTokenParsers {
                           | ("inl"~>term)~("as"~>lambda_type)^^{case t~l_type => Inl(t, l_type)}                                    
                           | ("inr"~>term)~("as"~>lambda_type)^^{case t~l_type => Inr(t, l_type)}                                    
                           | ("case"~>term)~("of"~"inl"~>ident)~("=>"~>term)~("|"~"inr"~>ident)~("=>"~>term)^^{case t~x1~t1~x2~t2 => Case(t, x1, t1, x2, t2)} 
+                          | ("fix"~>term)^^{case t => Fix(t)}
+                          | ("letrec"~>ident)~(":"~>lambda_type)~("="~>term)~("in"~>term)^^{case x~tpe1~t1~t2 => App(Abs(x,tpe1,t2),Fix(Abs(x,tpe1,t1)))}
 
 
   def numericLitRecursive(x: Int): Term = x match {
@@ -162,10 +164,14 @@ object SimplyTypedExtended extends  StandardTokenParsers {
         case Inl(tt, tpe) => isFV(tt, y)
         case Inr(tt, tpe) => isFV(tt, y)
         case Case(tt, x1, t1, x2, t2) => isFV(tt, y) || isFV(t1, y) || isFV(t2, y)
+
+        // fix
+        case Fix(tt) => isFV(tt, y)
       }
     }
 
     t match {
+      // Untyped
       case Var(y) => if(y==x){s}else{Var(y)}
       case Abs(y,type1,t1) => if(y==x){Abs(y,type1,t1)}else{if(!isFV(s, y)){Abs(y,type1,subst(t1, x, s))}else{
          subst(alpha(Abs(y,type1,t1)), x, s)
@@ -186,8 +192,16 @@ object SimplyTypedExtended extends  StandardTokenParsers {
       case First(t) => First(subst(t, x, s))
       case Second(t) => Second(subst(t, x, s))
 
-      //sum
+      // Sum
+      case Inl(t, tpe) => Inl(subst(t,x,s), tpe)
+      case Inr(t, tpe) => Inr(subst(t,x,s), tpe)
+      case Case(tt, x1, t1, x2, t2) if x1!=x && x2!=x => Case(subst(tt,x,s), x1, subst(t1,x,s), x2, subst(t2,x,s))
+      case Case(tt, x1, t1, x2, t2) if x1!=x && x2==x => Case(subst(tt,x,s), x1, subst(t1,x,s), x2, t2)
+      case Case(tt, x1, t1, x2, t2) if x1==x && x2!=x => Case(subst(tt,x,s), x1, t1, x2, subst(t2,x,s))
+      case Case(tt, x1, t1, x2, t2) if x1==x && x2==x => Case(subst(tt,x,s), x1, t1, x2, t2)
 
+      // Fix
+      case Fix(t) => Fix(subst(t,x,s))
     }
   }
 //------------------- [END] Functions from last assignement ------
@@ -260,8 +274,13 @@ object SimplyTypedExtended extends  StandardTokenParsers {
     case Inl(tt, tpe) => Inl(reduce(tt),tpe)
     case Inr(tt, tpe) => Inr(reduce(tt),tpe)
 
-    case _ =>
-      throw new NoRuleApplies(t)
+    //fix
+    case Fix(tt) => tt match {
+      case Abs(x, type1, t2) => subst(t2, x, Fix(tt))
+      case _ => Fix(reduce(tt))
+    }
+
+    case _ => throw new NoRuleApplies(t)
   }
 
   /** Thrown when no reduction rule applies to the given term. */
@@ -352,9 +371,24 @@ object SimplyTypedExtended extends  StandardTokenParsers {
     }
     case Inr(t1, tpe) => tpe match {
       case TypeSum(tt1, tt2) if typeof(ctx, t1)==tt2 => tpe
-      case _ => throw new TypeError(t, error_msg("Inl", typeof(ctx, t1).toString()))
+      case _ => throw new TypeError(t, error_msg("Inr", typeof(ctx, t1).toString()))
     }
-    //case Case(tt, x1, t1, x2, t2) => 
+    case Case(t0, x1, t1, x2, t2) => typeof(ctx, t0) match {
+      case TypeSum(type1, type2) => {
+        val type_t1 = typeof((x1, type1) +: ctx, t1)
+        val type_t2 = typeof((x2, type2) +: ctx, t2)
+        if(type_t1 == type_t2)
+          type_t1
+        else
+          throw new TypeError(t, error_msg("Case", typeof(ctx, t1).toString()))
+      }
+    }
+
+    // fix
+    case Fix(tt) => typeof(ctx, tt) match {
+      case TypeFun(tpe1, tpe2) if tpe1 == tpe2 => tpe1
+      case _ => throw new TypeError(t, error_msg("Fix", typeof(ctx, tt).toString()))
+    }
     
     case _ => throw new TypeError(t, "Parameter Type mismatch")
   }
