@@ -9,10 +9,10 @@ import scala.util.parsing.input._
  */
 object SimplyTypedExtended extends  StandardTokenParsers {
   lexical.delimiters ++= List("(", ")", "\\", ".", ":", "=", "->", "{", "}", ",", "*", "+",
-                              "=>", "|")
+                              "=>", "|", "!", ":=", ";")
   lexical.reserved   ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ",
                               "pred", "iszero", "let", "in", "fst", "snd", "fix", "letrec",
-                              "case", "of", "inl", "inr", "as")
+                              "case", "of", "inl", "inr", "as", "unit", "ref")
 
 //------------------- [START] TERMS ----------------------------------
   /** t ::=          "true"
@@ -56,6 +56,9 @@ object SimplyTypedExtended extends  StandardTokenParsers {
                           | ("case"~>term)~("of"~"inl"~>ident)~("=>"~>term)~("|"~"inr"~>ident)~("=>"~>term)^^{case t~x1~t1~x2~t2 => Case(t, x1, t1, x2, t2)} 
                           | ("fix"~>term)^^{case t => Fix(t)}
                           | ("letrec"~>ident)~(":"~>lambda_type)~("="~>term)~("in"~>term)^^{case x~tpe1~t1~t2 => App(Abs(x,tpe1,t2),Fix(Abs(x,tpe1,t1)))}
+                          | "unit"^^^UnitVal
+                          | ("ref"~>term)^^{case t1 => Ref(t1)}
+                          | ("!"~>term)^^{case t1 => Deref(t1)}
 
 
   def numericLitRecursive(x: Int): Term = x match {
@@ -63,14 +66,22 @@ object SimplyTypedExtended extends  StandardTokenParsers {
     case _ => Succ(numericLitRecursive(x-1))
   }
 
-  def term: Parser[Term] =
+  def assn_term: Parser[Term] =
     termlet ~ rep(termlet) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
+
+  def seq_term: Parser[Term] =
+    repsep(assn_term, ":=") ^^ {case assn_list => assn_list.reduceLeft(Assign(_, _))}
+  
+  def term: Parser[Term] =
+    repsep(seq_term, ";") ^^ {case seq_list => seq_list.reduceLeft(Sequence(_, _))}
 
 //------------------- [END] TERMS ----------------------------------
 //------------------- [START] TYPES --------------------------------
   def lambda_typelet: Parser[Type] = "Bool"^^^TypeBool
                                   | "Nat"^^^TypeNat
                                   | "("~lambda_type~")"^^{case _~x~_=>x}
+                                  | "Unit"^^^TypeUnit
+                                  | "Ref"~>lambda_type^^{case x => TypeRef(x)}
 
   def pairOrSum(left: ~[Type,String], right: Type): Type = left match {
     case leftside ~ str if str == "+" => TypeSum(leftside, right)
@@ -100,6 +111,8 @@ object SimplyTypedExtended extends  StandardTokenParsers {
       case TermPair(t1, t2) => is_val(t1) && is_val(t2)
       case Inl(tt, tpe) => is_val(tt)
       case Inr(tt, tpe) => is_val(tt)
+      case UnitVal => true
+      case Loc(_) => true
       case _ => false
   }
 
@@ -212,7 +225,38 @@ object SimplyTypedExtended extends  StandardTokenParsers {
      * of `reduce(t: Term): Term` below.
      * The default implementation is to always ignore the store.
      */
-    (reduce(t), store)
+    t match {
+      case Sequence(t1, t2) => t1 match
+        case UnitVal => (t2, store)
+        case _ => (Sequence(reduce(t1), t2), store)
+      case Ref(t1) => {
+        if(is_val(t1)){
+          var new_l = Location.fresh()
+          (Loc(new_l), store.addOrReplace(new_l, t1))
+        }
+        else{
+          (Ref(reduce(t1)), store)
+        }
+      }
+      case Deref(t1) => t1 match
+        case Loc(l) => (store.get(l).get, store)
+        case _ => (Deref(reduce(t1)), store)
+
+      case Assign(t1, t2) => {
+        if(is_val(t1)){
+          t1 match {
+            case Loc(l) if(is_val(t2)) => (UnitVal, store.addOrReplace(l, t2))
+            case _ => (Assign(t1, reduce(t2)), store)
+          }
+        }
+        else{
+          (Assign(reduce(t1), t2), store)
+        }
+      }
+      
+      
+      case _ => (reduce(t), store)
+    }
   }
 
   /** Call by value reducer. */
@@ -389,7 +433,16 @@ object SimplyTypedExtended extends  StandardTokenParsers {
       case TypeFun(tpe1, tpe2) if tpe1 == tpe2 => tpe1
       case _ => throw new TypeError(t, error_msg("Fix", typeof(ctx, tt).toString()))
     }
-    
+
+    // imperative
+    case UnitVal => TypeUnit
+    case Sequence(t1, t2) if(typeof(t1) == TypeUnit) => typeof(t2)
+    case Ref(t1) => TypeRef(typeof(t1))
+    case Deref(t1) => typeof(t1) match
+      case TypeRef(tt1) => tt1
+    case Assign(t1, t2) => typeof(t1) match
+      case TypeRef(tt1) if(tt1 == typeof(t2)) => TypeUnit
+
     case _ => throw new TypeError(t, "Parameter Type mismatch")
   }
 
