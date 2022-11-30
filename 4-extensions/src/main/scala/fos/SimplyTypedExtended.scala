@@ -63,8 +63,19 @@ object SimplyTypedExtended extends  StandardTokenParsers {
     case _ => Succ(numericLitRecursive(x-1))
   }
 
+  def as_term: Parser[Term] = 
+    (termlet<~"as")~(lambda_type) ^^ {case as_term~as_type => Ascription(as_term, as_type)}
+
+  def app_term: Parser[Term] =
+    as_term ~ rep(as_term) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
+
+  def label(l: String): Parser[String] =
+    return l.toString()
+
+  // Need to match 0 or 1 projections
   def term: Parser[Term] =
-    termlet ~ rep(termlet) ^^ {case tlet ~ tlist => tlist.foldLeft(tlet)(App(_, _))}
+    (app_term<~".")~(label.toString()) ^^ {case t1~l => RecordProj(t1, l)}
+
 
 //------------------- [END] TERMS ----------------------------------
 //------------------- [START] TYPES --------------------------------
