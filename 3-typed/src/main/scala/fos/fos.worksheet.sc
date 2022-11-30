@@ -39,6 +39,7 @@ reduce(parse("0 (iszero 0)", term).get)
 reduce(parse("if true then if false then false else succ succ 0 else 0", term).get)
 reduce(parse("fst {iszero 0, false}", term).get)
 reduce(parse("fst {true, false}", term).get)
+typeof(List.empty, ("(\\x:Bool.succ(x)) ", term).get)
 
 typeof(List.empty, parse("(\\x:Nat*Nat.iszero snd x) ({1, 2})", term).get)
 typeof(List.empty, parse("false", term).get)
