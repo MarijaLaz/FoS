@@ -1,0 +1,17 @@
+target/
+/.bloop
+/.metals
+/.vscode
+project/
+.DS_Store
+
+*.class
+*.tasty
+*.semanticdb
+*.json
+*.log
+*.zip
+*.bin
+*.txt
+**/.metals
+
