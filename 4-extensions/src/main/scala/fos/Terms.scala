@@ -88,7 +88,7 @@ case class NilVal(tp: Type) extends Term
 
 case class Cons(tp: Type, t1: Term, t2: Term) extends Term
 
-case class ListCase(t1: Term, t2: Term, x: String, y: String, t3: Term)
+case class ListCase(t1: Term, t2: Term, x: String, y: String, t3: Term) extends Term
 
 // Function/subtyping bundle
 
