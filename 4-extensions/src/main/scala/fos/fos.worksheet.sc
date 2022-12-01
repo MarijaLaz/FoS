@@ -16,6 +16,7 @@ parse("true;0 0", term)
 
 
 // Reduce
-// var store = new Store()
+var store = fos.Store.empty
 
+reduce(parse("if true then false else true", term).get, store)
 // reduce(parse("\\x:Nat+Bool*Nat->Nat*Nat+Nat. x", term).get, store)
