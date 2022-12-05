@@ -35,6 +35,7 @@ reduce(parse("0 (iszero 0)", term).get)
 
 (parse("\\y:Nat.(\\x:Nat.iszero x) y", term).get)
 (parse("(\\y:Nat.(\\x:Nat.iszero x)) y", term).get)
+parse("let x: Bool=true in let y: Bool = x in x",term)
 
 reduce(parse("if true then if false then false else succ succ 0 else 0", term).get)
 reduce(parse("fst {iszero 0, false}", term).get)

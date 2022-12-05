@@ -12,7 +12,7 @@ object SimplyTypedExtended extends  StandardTokenParsers {
                               "=>", "|", "!", ":=", ";")
   lexical.reserved   ++= List("Bool", "Nat", "true", "false", "if", "then", "else", "succ",
                               "pred", "iszero", "let", "in", "fst", "snd", "fix", "letrec",
-                              "case", "of", "inl", "inr", "as", "unit", "ref")
+                              "case", "of", "inl", "inr", "as", "unit", "ref", "Ref", "Unit")
 
 //------------------- [START] TERMS ----------------------------------
   /** t ::=          "true"
@@ -47,7 +47,7 @@ object SimplyTypedExtended extends  StandardTokenParsers {
                           | ident^^{x=>Var(x)}
                           | ("\\"~>ident)~(":"~>lambda_type)~("."~>term)^^{ case variable ~ l_type ~ term1=> Abs(variable, l_type, term1)} 
                           | "("~term~")"^^{case _~x~_=>x}
-                          | ("let"~>ident)~(":"~>lambda_type)~("="~>term)~("in"~>term)^^{case variable ~ l_type ~ t1 ~ t2 => App(Abs(variable,l_type,t2),t1)}
+                          | ("let"~>ident)~(":"~>lambda_type)~("="~>assn_term)~("in"~>assn_term)^^{case variable ~ l_type ~ t1 ~ t2 => App(Abs(variable,l_type,t2),t1)}
                           | ("{"~>term)~","~(term<~"}")^^{case t1~_~t2 => TermPair(t1, t2)}
                           | ("fst"~>term)^^{case t => First(t)}
                           | ("snd"~>term)^^{case t => Second(t)}
@@ -182,39 +182,62 @@ object SimplyTypedExtended extends  StandardTokenParsers {
         case Fix(tt) => isFV(tt, y)
       }
     }
-
+    // println("");
+    // println("To be substituted into: t=" +t);
+    // println("Variable of substitution: x=" + x);
+    // println("To substitute with: s=" + s);
+    // println("");
     t match {
       // Untyped
-      case Var(y) => if(y==x){s}else{Var(y)}
-      case Abs(y,type1,t1) => if(y==x){Abs(y,type1,t1)}else{if(!isFV(s, y)){Abs(y,type1,subst(t1, x, s))}else{
-         subst(alpha(Abs(y,type1,t1)), x, s)
-      }}
+      case Var(y) => {if(y==x){s}else{Var(y)}}
+      // case Abs(y,type1,t1) => if(y==x){Abs(y,type1,t1)}else{if(!isFV(s, y)){Abs(y,type1,subst(t1, x, s))}else{
+      //    subst(alpha(Abs(y,type1,t1)), x, s)
+      // }}
+      case Abs(y,type1,t1) => if(y==x){Abs(y,type1,t1)}else{Abs(y,type1,subst(t1, x, s))}
       case App(t1, t2) => App(subst(t1, x, s), subst(t2, x, s))
       
       // Arithmetics
       case True => True
       case False => False
       case Zero => Zero
-      case Succ(t) => Succ(subst(t,x,s))
-      case Pred(t) => Pred(subst(t,x,s))
+      case Succ(t1) => Succ(subst(t1,x,s))
+      case Pred(t1) => Pred(subst(t1,x,s))
       case If(cond, t1, t2) => If(subst(cond, x, s), subst(t1, x, s), subst(t2, x, s))
-      case IsZero(t) => IsZero(subst(t,x,s))
+      case IsZero(t1) => IsZero(subst(t1,x,s))
 
       // Pairs
       case TermPair(t1, t2) => TermPair(subst(t1, x, s), subst(t2, x, s))
-      case First(t) => First(subst(t, x, s))
-      case Second(t) => Second(subst(t, x, s))
+      case First(t1) => First(subst(t1, x, s))
+      case Second(t1) => Second(subst(t1, x, s))
 
       // Sum
-      case Inl(t, tpe) => Inl(subst(t,x,s), tpe)
-      case Inr(t, tpe) => Inr(subst(t,x,s), tpe)
+      case Inl(t1, tpe) => Inl(subst(t1,x,s), tpe)
+      case Inr(t1, tpe) => Inr(subst(t1,x,s), tpe)
       case Case(tt, x1, t1, x2, t2) if x1!=x && x2!=x => Case(subst(tt,x,s), x1, subst(t1,x,s), x2, subst(t2,x,s))
       case Case(tt, x1, t1, x2, t2) if x1!=x && x2==x => Case(subst(tt,x,s), x1, subst(t1,x,s), x2, t2)
       case Case(tt, x1, t1, x2, t2) if x1==x && x2!=x => Case(subst(tt,x,s), x1, t1, x2, subst(t2,x,s))
       case Case(tt, x1, t1, x2, t2) if x1==x && x2==x => Case(subst(tt,x,s), x1, t1, x2, t2)
 
       // Fix
-      case Fix(t) => Fix(subst(t,x,s))
+      case Fix(t1) => Fix(subst(t1,x,s))
+      
+      // Location
+      case Loc(_) => t
+
+      // Ref
+      case Ref(t1) => Ref(subst(t1, x, s))
+
+      // Deref
+      case Deref(t1) => Deref(subst(t1, x, s))
+
+      // Assign
+      case Assign(t1, t2) => Assign(subst(t1, x, s), subst(t2, x, s))
+
+      // Sequence
+      case Sequence(t1, t2) => Sequence(subst(t1, x, s), subst(t2, x, s))
+
+      // Unit
+      case UnitVal => UnitVal
     }
   }
 //------------------- [END] Functions from last assignement ------
@@ -225,107 +248,184 @@ object SimplyTypedExtended extends  StandardTokenParsers {
      * of `reduce(t: Term): Term` below.
      * The default implementation is to always ignore the store.
      */
+
+
+
     t match {
       case Sequence(t1, t2) => t1 match
-        case UnitVal => (t2, store)
-        case _ => (Sequence(reduce(t1), t2), store)
+        case UnitVal => reduce(t2, store)
+        case _ => (Sequence(reduce(t1, store)._1, t2), store)
       case Ref(t1) => {
         if(is_val(t1)){
           var new_l = Location.fresh()
-          (Loc(new_l), store.addOrReplace(new_l, t1))
+          println("Value " + t1 + " stored at " + new_l);
+          println("Store looks like (before): " + store)
+          store.addOrReplace(new_l, t1);
+          println("Store looks like (after): " + store)
+          println(store.get(new_l))
+          (Loc(new_l), store)
         }
         else{
-          (Ref(reduce(t1)), store)
+          (Ref(reduce(t1, store)._1), store)
         }
       }
       case Deref(t1) => t1 match
-        case Loc(l) => (store.get(l).get, store)
-        case _ => (Deref(reduce(t1)), store)
+        case Loc(l) => {
+          println("Term in question: " + t);
+          println("Label: " + l);
+          println("Store looks like: " + store)
+          println("Term in store at above location: " + store.get(l));
+          (store.get(l).get, store)
+        }
+        case _ => (Deref(reduce(t1, store)._1), store)
 
       case Assign(t1, t2) => {
         if(is_val(t1)){
           t1 match {
             case Loc(l) if(is_val(t2)) => (UnitVal, store.addOrReplace(l, t2))
-            case _ => (Assign(t1, reduce(t2)), store)
+            case _ => (Assign(t1, reduce(t2, store)._1), store)
           }
         }
         else{
-          (Assign(reduce(t1), t2), store)
+          (Assign(Deref(reduce(t1, store)._1), t2), store)
         }
       }
       
       
-      case _ => (reduce(t), store)
+      case If(True, t1, _) => (t1, store)
+      case If(False, _, t2) => (t2, store)
+      case IsZero(Zero) => (True, store)
+      case IsZero(Succ(nv)) => (False, store)
+      case Pred(Zero) => (Zero, store)
+      case Pred(Succ(nv)) => (nv, store)
+      case If(t1, t2, t3) => (If(reduce(t1, store)._1, t2, t3), store)
+      case IsZero(t1) => (IsZero(reduce(t1, store)._1), store)
+      case Pred(t1) => (Pred(reduce(t1, store)._1), store)
+      case Succ(t1) => (Succ(reduce(t1, store)._1), store)
+
+      //untyped
+      case App(tt, s) =>
+
+        tt match {
+        case Abs(x1, type1, t1) => {
+          if(is_val(s)){
+              (subst(t1, x1, s), store)
+          }
+          else{
+            reduce(App(tt, reduce(s, store)._1), store)
+          }
+        }
+        case _ =>
+          if(is_val(tt)){
+            reduce(App(tt, reduce(s, store)._1), store)
+          }
+          else
+            reduce(App(reduce(tt, store)._1, s), store)
+      }
+
+      //pairs
+      case First(TermPair(t1,t2))
+        if(is_val(t1) && is_val(t2))
+          => (t1, store)
+
+      case Second(TermPair(t1,t2))  
+        if(is_val(t1) && is_val(t2))
+          => (t2, store)
+      
+      case First(t1) => (First(reduce(t1, store)._1), store)
+      case Second(t1) => (Second(reduce(t1, store)._1), store)
+      case TermPair(t1, t2) => 
+        if(is_val(t1))
+          (TermPair(t1, reduce(t2, store)._1), store)
+        else
+          (TermPair(reduce(t1, store)._1,t2), store)
+      
+      //sum
+      case Case(tt, x1, t1, x2, t2) => tt match {
+        case Inl(v0, tpe) => (subst(t1,x1,v0), store)
+        case Inr(v0, tpe) => (subst(t2,x2,v0), store)
+        case _ => (Case(reduce(tt, store)._1, x1, t1, x2, t2), store)
+      }
+      case Inl(tt, tpe) => (Inl(reduce(tt, store)._1,tpe), store)
+      case Inr(tt, tpe) => (Inr(reduce(tt, store)._1,tpe), store)
+
+      //fix
+      case Fix(tt) => tt match {
+        case Abs(x, type1, t2) => (subst(t2, x, Fix(tt)), store)
+        case _ => (Fix(reduce(tt, store)._1), store)
+      }
+
+      case _ => throw new NoRuleApplies(t)
     }
   }
 
   /** Call by value reducer. */
-  def reduce(t: Term): Term = t match {
-    //arithmetic
-    case If(True, t1, _) => t1
-    case If(False, _, t2) => t2
-    case IsZero(Zero) => True
-    case IsZero(Succ(nv)) => False
-    case Pred(Zero) => Zero
-    case Pred(Succ(nv)) => nv
-    case If(t1, t2, t3) => If(reduce(t1), t2, t3)
-    case IsZero(t1) => IsZero(reduce(t1))
-    case Pred(t1) => Pred(reduce(t1))
-    case Succ(t1) => Succ(reduce(t1))
+  // def reduce(t: Term): Term = t match {
+  //   //arithmetic
+  //   case If(True, t1, _) => t1
+  //   case If(False, _, t2) => t2
+  //   case IsZero(Zero) => True
+  //   case IsZero(Succ(nv)) => False
+  //   case Pred(Zero) => Zero
+  //   case Pred(Succ(nv)) => nv
+  //   case If(t1, t2, t3) => If(reduce(t1), t2, t3)
+  //   case IsZero(t1) => IsZero(reduce(t1))
+  //   case Pred(t1) => Pred(reduce(t1))
+  //   case Succ(t1) => Succ(reduce(t1))
 
-    //untyped
-    case App(tt, s) =>
-      tt match {
-      case Abs(x1, type1, t1) => {
-        if(is_val(s)){
-            subst(t1, x1, s)
-        }
-        else{
-          App(tt, reduce(s))
-        }
-      }
-      case _ =>
-        if(is_val(tt)){
-          App(tt, reduce(s))
-        }
-        else
-          App(reduce(tt), s)
-    }
+  //   //untyped
+  //   case App(tt, s) =>
+  //     tt match {
+  //     case Abs(x1, type1, t1) => {
+  //       if(is_val(s)){
+  //           subst(t1, x1, s)
+  //       }
+  //       else{
+  //         App(tt, reduce(s))
+  //       }
+  //     }
+  //     case _ =>
+  //       if(is_val(tt)){
+  //         App(tt, reduce(s))
+  //       }
+  //       else
+  //         App(reduce(tt), s)
+  //   }
 
-    //pairs
-    case First(TermPair(t1,t2))
-      if(is_val(t1) && is_val(t2))
-        => t1
+  //   //pairs
+  //   case First(TermPair(t1,t2))
+  //     if(is_val(t1) && is_val(t2))
+  //       => t1
 
-    case Second(TermPair(t1,t2))  
-      if(is_val(t1) && is_val(t2))
-        => t2
+  //   case Second(TermPair(t1,t2))  
+  //     if(is_val(t1) && is_val(t2))
+  //       => t2
     
-    case First(t1) => First(reduce(t1))
-    case Second(t1) => Second(reduce(t1))
-    case TermPair(t1, t2) => 
-      if(is_val(t1))
-        TermPair(t1, reduce(t2))
-      else
-        TermPair(reduce(t1),t2)
+  //   case First(t1) => First(reduce(t1))
+  //   case Second(t1) => Second(reduce(t1))
+  //   case TermPair(t1, t2) => 
+  //     if(is_val(t1))
+  //       TermPair(t1, reduce(t2))
+  //     else
+  //       TermPair(reduce(t1),t2)
     
-    //sum
-    case Case(tt, x1, t1, x2, t2) => tt match {
-      case Inl(v0, tpe) => subst(t1,x1,v0)
-      case Inr(v0, tpe) => subst(t2,x2,v0)
-      case _ => Case(reduce(tt), x1, t1, x2, t2)
-    }
-    case Inl(tt, tpe) => Inl(reduce(tt),tpe)
-    case Inr(tt, tpe) => Inr(reduce(tt),tpe)
+  //   //sum
+  //   case Case(tt, x1, t1, x2, t2) => tt match {
+  //     case Inl(v0, tpe) => subst(t1,x1,v0)
+  //     case Inr(v0, tpe) => subst(t2,x2,v0)
+  //     case _ => Case(reduce(tt), x1, t1, x2, t2)
+  //   }
+  //   case Inl(tt, tpe) => Inl(reduce(tt),tpe)
+  //   case Inr(tt, tpe) => Inr(reduce(tt),tpe)
 
-    //fix
-    case Fix(tt) => tt match {
-      case Abs(x, type1, t2) => subst(t2, x, Fix(tt))
-      case _ => Fix(reduce(tt))
-    }
+  //   //fix
+  //   case Fix(tt) => tt match {
+  //     case Abs(x, type1, t2) => subst(t2, x, Fix(tt))
+  //     case _ => Fix(reduce(tt))
+  //   }
 
-    case _ => throw new NoRuleApplies(t)
-  }
+  //   case _ => throw new NoRuleApplies(t)
+  // }
 
   /** Thrown when no reduction rule applies to the given term. */
   case class NoRuleApplies(t: Term) extends Exception(t.toString)
@@ -377,9 +477,7 @@ object SimplyTypedExtended extends  StandardTokenParsers {
         throw new TypeError(t, "then has type " + typeof(ctx, t1) + " else has type " + typeof(ctx, t2))
     
     // untyped
-    case Var(x)
-      if ctx.exists(_._1 == x) => 
-        ctx.find(_._1 == x).get._2 
+    case Var(x) => {if (ctx.exists(_._1 == x))  ctx.find(_._1 == x).get._2 else throw new TypeError(t, "Doesn't exist")}
 
     case Abs(x, type1, t1) =>
       TypeFun(type1, typeof((x, type1) +: ctx, t1))
@@ -436,13 +534,17 @@ object SimplyTypedExtended extends  StandardTokenParsers {
 
     // imperative
     case UnitVal => TypeUnit
-    case Sequence(t1, t2) if(typeof(t1) == TypeUnit) => typeof(t2)
-    case Ref(t1) => TypeRef(typeof(t1))
-    case Deref(t1) => typeof(t1) match
+    case Sequence(t1, t2) if(typeof(ctx, t1) == TypeUnit) => typeof(ctx, t2)
+    case Ref(t1) => TypeRef(typeof(ctx, t1))
+    case Deref(t1) => typeof(ctx, t1) match
       case TypeRef(tt1) => tt1
-    case Assign(t1, t2) => typeof(t1) match
-      case TypeRef(tt1) if(tt1 == typeof(t2)) => TypeUnit
+    case Assign(t1, t2) => typeof(ctx, t1) match
+      case TypeRef(tt1) if(tt1 == typeof(ctx, t2)) => TypeUnit
 
+    // case x
+    //   if ctx.exists(_._1 == x) => 
+    //     ctx.find(_._1 == x).get._2 
+    
     case _ => throw new TypeError(t, "Parameter Type mismatch")
   }
 
@@ -460,10 +562,11 @@ object SimplyTypedExtended extends  StandardTokenParsers {
    *  @param reduce the evaluation strategy used for reduction.
    *  @return       the stream of terms representing the big reduction.
    */
-  def path(t: Term, reduce: Term => Term): LazyList[Term] =
+  var st = fos.Store.empty
+  def path(t: Term, reduce: (Term, Store) => (Term, Store)): LazyList[Term] =
     try {
-      var t1 = reduce(t)
-      LazyList.cons(t, path(t1, reduce))
+      var t1 = reduce(t, st)
+      LazyList.cons(t, path(t1._1, reduce))
     } catch {
       case NoRuleApplies(_) =>
         LazyList.cons(t, LazyList.empty)
@@ -482,8 +585,7 @@ object SimplyTypedExtended extends  StandardTokenParsers {
         } catch {
           case tperror: Exception => println(tperror.toString)
         }
-      case e =>
-        println(e)
+      case e => {println(e); println("Hey")}
     }
   }
 }

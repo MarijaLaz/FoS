@@ -28,13 +28,13 @@ case class If(cond: Term, t1: Term, t2: Term) extends Term {
 }
 
 case class Var(name: String) extends Term {
-  override def toString() = name
+  // override def toString() = name
 }
 case class Abs(v: String, tp: Type, t: Term) extends Term {
-  override def toString() = s"(\\$v: $tp. $t)"
+  // override def toString() = s"(\\$v: $tp. $t)"
 }
 case class App(t1: Term, t2: Term) extends Term {
-  override def toString() = s"($t1 $t2)"
+  // override def toString() = s"($t1 $t2)"
 }
 case class TermPair(t1: Term, t2: Term) extends Term {
   override def toString() = s"{ $t1, $t2 }"
@@ -137,6 +137,7 @@ final class Store private (underlying: Map[Location, Term]) {
   def get(location: Location): Option[Term] = underlying.get(location)
 
   def addOrReplace(location: Location, value: Term): Store =
+    // println(location.toString() + " stored " + value);
     new Store(underlying + (location -> value))
 }
 
