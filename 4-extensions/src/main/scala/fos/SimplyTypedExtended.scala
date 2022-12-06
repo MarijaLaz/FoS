@@ -116,72 +116,9 @@ object SimplyTypedExtended extends  StandardTokenParsers {
       case _ => false
   }
 
-  var counter: Int = 0
-  def alpha(t: Abs): Abs = {
-    var new_name: String = t.v+counter.toString
-    counter+=1
-    
-    def replace(term:Term, valueToBeReplaced: String, new_value: String): Term = {
-      term match {
-        // untyped
-        case Var(x) => if(x==valueToBeReplaced){Var(new_name)}else{Var(x)}
-        case Abs(x,type1,t1) => if(x==valueToBeReplaced){Abs(x,type1,t1)}else{Abs(x, type1, replace(t1, valueToBeReplaced, new_value))}
-        case App(t1, t2) => App(replace(t1, valueToBeReplaced, new_value),replace(t2, valueToBeReplaced, new_value))
-
-        // arithmetic
-        case True => True
-        case False => False
-        case Zero => Zero
-        case Succ(t) => Succ(replace(t, valueToBeReplaced, new_value))
-        case Pred(t) => Pred(replace(t, valueToBeReplaced, new_value))
-        case If(cond, t1, t2) => If(replace(cond, valueToBeReplaced, new_value), replace(t1, valueToBeReplaced, new_value), replace(t2, valueToBeReplaced, new_value))
-        case IsZero(t) => IsZero(replace(t, valueToBeReplaced, new_value))
-
-        // pairs
-        case TermPair(t1, t2) => TermPair(replace(t1, valueToBeReplaced, new_value), replace(t2, valueToBeReplaced, new_value))
-        case First(t) => First(replace(t, valueToBeReplaced, new_value))
-        case Second(t) => Second(replace(t, valueToBeReplaced, new_value))
-
-        // sum
-      }
-    } 
-    var new_term: Term = replace(t.t, t.v, new_name)
-    return Abs(new_name,t.tp,new_term)
-
-  }
 
   def subst(t: Term, x: String, s: Term): Term = {
     
-    def isFV(s: Term, y: String): Boolean = {
-      s match{
-        // untyped
-        case Var(z) => if(z == y){return true}else{return false}
-        case Abs(z,type1,t1) => if (z==y){return false}else{return isFV(t1, y)}
-        case App(t1, t2) => return isFV(t1, y) || isFV(t2, y)
-        
-        // arithmetics
-        case True => false
-        case False => false
-        case Zero => false
-        case Succ(t) => isFV(t,y)
-        case Pred(t) => isFV(t,y)
-        case If(cond, t1, t2) => isFV(cond,y) || isFV(t1,y) || isFV(t2,y)
-        case IsZero(t) => isFV(t,y)
-
-        // pairs
-        case TermPair(t1, t2) => isFV(t1, y) || isFV(t2, y)
-        case First(t) => isFV(t, y)
-        case Second(t) => isFV(t, y)
-
-        // sum
-        case Inl(tt, tpe) => isFV(tt, y)
-        case Inr(tt, tpe) => isFV(tt, y)
-        case Case(tt, x1, t1, x2, t2) => isFV(tt, y) || isFV(t1, y) || isFV(t2, y)
-
-        // fix
-        case Fix(tt) => isFV(tt, y)
-      }
-    }
     // println("");
     // println("To be substituted into: t=" +t);
     // println("Variable of substitution: x=" + x);
@@ -190,9 +127,6 @@ object SimplyTypedExtended extends  StandardTokenParsers {
     t match {
       // Untyped
       case Var(y) => {if(y==x){s}else{Var(y)}}
-      // case Abs(y,type1,t1) => if(y==x){Abs(y,type1,t1)}else{if(!isFV(s, y)){Abs(y,type1,subst(t1, x, s))}else{
-      //    subst(alpha(Abs(y,type1,t1)), x, s)
-      // }}
       case Abs(y,type1,t1) => if(y==x){Abs(y,type1,t1)}else{Abs(y,type1,subst(t1, x, s))}
       case App(t1, t2) => App(subst(t1, x, s), subst(t2, x, s))
       
@@ -261,7 +195,6 @@ object SimplyTypedExtended extends  StandardTokenParsers {
           var new_l = Location.fresh()
           // println("Value " + t1 + " stored at " + new_l);
           // println("Store looks like (before): " + store)
-          // println("Store looks like (after): " + store.addOrReplace(new_l, t1))
           // println(store.get(new_l))
           (Loc(new_l), store.addOrReplace(new_l, t1))
         }
@@ -285,7 +218,7 @@ object SimplyTypedExtended extends  StandardTokenParsers {
       case Assign(t1, t2) => {
         if(is_val(t1)){
           t1 match {
-            case Loc(l) if(is_val(t2)) => (UnitVal, store.addOrReplace(l, t2)) // wth is this?
+            case Loc(l) if(is_val(t2)) => (UnitVal, store.addOrReplace(l, t2)) 
             case _ => 
               var x = reduce(t2, store)
               (Assign(t1, x._1), x._2)
