@@ -16,7 +16,7 @@ parse("true;0 0", term)
 
 
 // Reduce
-var store = fos.Store.empty
+def store = fos.Store.empty
 // parse("let x: Bool=true in let y: Bool = x in x",term)
 parse("\\x:(Ref Nat). x", term)
 parse("let x: Ref Nat = ref 0 in x",term)
@@ -31,9 +31,7 @@ parse("ref 0 := 0", term)
 // parse("ref 0; x := ref 0")
 reduce(parse("ref 0", term).get, store)
 parse("let x: Ref Nat=ref 0 in let y: Ref Nat = x in (x:=(succ (!x));(!y))",term)
-var z = reduce(parse("let x: Ref Nat=ref 0 in let y: Ref Nat = x in (x:=(succ (!x));(!y))",term).get, store)
-var y = reduce(z._1, z._2)
-y
+reduce(parse("let x: Ref Nat=ref 0 in let y: Ref Nat = x in (x:=(succ (!x));(!y))",term).get, store)
 parse("let x : Ref Nat = ref 0 in y := true", term)
 // reduce(parse("\\x:Nat+Bool*Nat->Nat*Nat+Nat. x", term).get, store)
 // store.addOrReplace()

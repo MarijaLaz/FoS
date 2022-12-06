@@ -250,44 +250,50 @@ object SimplyTypedExtended extends  StandardTokenParsers {
      */
 
 
-
     t match {
       case Sequence(t1, t2) => t1 match
         case UnitVal => reduce(t2, store)
-        case _ => (Sequence(reduce(t1, store)._1, t2), store)
+        case _ => 
+          var x = reduce(t1, store)
+          (Sequence(x._1, t2), x._2)
       case Ref(t1) => {
         if(is_val(t1)){
           var new_l = Location.fresh()
-          println("Value " + t1 + " stored at " + new_l);
-          println("Store looks like (before): " + store)
-          store.addOrReplace(new_l, t1);
-          println("Store looks like (after): " + store)
-          println(store.get(new_l))
-          (Loc(new_l), store)
+          // println("Value " + t1 + " stored at " + new_l);
+          // println("Store looks like (before): " + store)
+          // println("Store looks like (after): " + store.addOrReplace(new_l, t1))
+          // println(store.get(new_l))
+          (Loc(new_l), store.addOrReplace(new_l, t1))
         }
         else{
-          (Ref(reduce(t1, store)._1), store)
+          var x = reduce(t1, store)
+          (Ref(x._1), x._2);
         }
       }
       case Deref(t1) => t1 match
         case Loc(l) => {
-          println("Term in question: " + t);
-          println("Label: " + l);
-          println("Store looks like: " + store)
-          println("Term in store at above location: " + store.get(l));
+          // println("Term in question: " + t);
+          // println("Label: " + l);
+          // println("Store looks like: " + store)
+          // println("Term in store at above location: " + store.get(l));
           (store.get(l).get, store)
         }
-        case _ => (Deref(reduce(t1, store)._1), store)
+        case _ => 
+          var x = reduce(t1, store)
+          (Deref(x._1), x._2)
 
       case Assign(t1, t2) => {
         if(is_val(t1)){
           t1 match {
-            case Loc(l) if(is_val(t2)) => (UnitVal, store.addOrReplace(l, t2))
-            case _ => (Assign(t1, reduce(t2, store)._1), store)
+            case Loc(l) if(is_val(t2)) => (UnitVal, store.addOrReplace(l, t2)) // wth is this?
+            case _ => 
+              var x = reduce(t2, store)
+              (Assign(t1, x._1), x._2)
           }
         }
         else{
-          (Assign(Deref(reduce(t1, store)._1), t2), store)
+          var x = reduce(t1, store)
+          (Assign(Deref(x._1), t2), x._2)
         }
       }
       
@@ -298,10 +304,18 @@ object SimplyTypedExtended extends  StandardTokenParsers {
       case IsZero(Succ(nv)) => (False, store)
       case Pred(Zero) => (Zero, store)
       case Pred(Succ(nv)) => (nv, store)
-      case If(t1, t2, t3) => (If(reduce(t1, store)._1, t2, t3), store)
-      case IsZero(t1) => (IsZero(reduce(t1, store)._1), store)
-      case Pred(t1) => (Pred(reduce(t1, store)._1), store)
-      case Succ(t1) => (Succ(reduce(t1, store)._1), store)
+      case If(t1, t2, t3) => 
+        var x = reduce(t1, store)
+        (If(x._1, t2, t3), x._2)
+      case IsZero(t1) => 
+        var x = reduce(t1, store)
+        (IsZero(x._1), x._2)
+      case Pred(t1) => 
+        var x = reduce(t1, store)
+        (Pred(x._1), x._2)
+      case Succ(t1) => 
+        var x = reduce(t1, store)
+        (Succ(x._1), x._2)
 
       //untyped
       case App(tt, s) =>
@@ -312,15 +326,18 @@ object SimplyTypedExtended extends  StandardTokenParsers {
               (subst(t1, x1, s), store)
           }
           else{
-            reduce(App(tt, reduce(s, store)._1), store)
+            var x = reduce(s, store)
+            (App(tt, x._1), x._2)
           }
         }
         case _ =>
           if(is_val(tt)){
-            reduce(App(tt, reduce(s, store)._1), store)
+            var x = reduce(s, store)
+            (App(tt, x._1), x._2)
           }
           else
-            reduce(App(reduce(tt, store)._1, s), store)
+            var x = reduce(tt, store)
+            (App(x._1, s), x._2)
       }
 
       //pairs
@@ -332,27 +349,41 @@ object SimplyTypedExtended extends  StandardTokenParsers {
         if(is_val(t1) && is_val(t2))
           => (t2, store)
       
-      case First(t1) => (First(reduce(t1, store)._1), store)
-      case Second(t1) => (Second(reduce(t1, store)._1), store)
+      case First(t1) => 
+        var x = reduce(t1, store)
+        (First(x._1), x._2)
+      case Second(t1) => 
+        var x = reduce(t1, store)
+        (Second(x._1), x._2)
       case TermPair(t1, t2) => 
         if(is_val(t1))
-          (TermPair(t1, reduce(t2, store)._1), store)
+          var x = reduce(t2, store)
+          (TermPair(t1, x._1), x._2)
         else
-          (TermPair(reduce(t1, store)._1,t2), store)
+          var x = reduce(t1, store)
+          (TermPair(x._1,t2), x._2)
       
       //sum
       case Case(tt, x1, t1, x2, t2) => tt match {
         case Inl(v0, tpe) => (subst(t1,x1,v0), store)
         case Inr(v0, tpe) => (subst(t2,x2,v0), store)
-        case _ => (Case(reduce(tt, store)._1, x1, t1, x2, t2), store)
+        case _ => 
+          var x = reduce(tt, store)
+          (Case(x._1, x1, t1, x2, t2), x._2)
       }
-      case Inl(tt, tpe) => (Inl(reduce(tt, store)._1,tpe), store)
-      case Inr(tt, tpe) => (Inr(reduce(tt, store)._1,tpe), store)
+      case Inl(tt, tpe) => 
+        var x = reduce(tt, store)
+        (Inl(x._1,tpe), x._2)
+      case Inr(tt, tpe) => 
+        var x = reduce(tt, store)
+        (Inr(x._1,tpe), x._2)
 
       //fix
       case Fix(tt) => tt match {
         case Abs(x, type1, t2) => (subst(t2, x, Fix(tt)), store)
-        case _ => (Fix(reduce(tt, store)._1), store)
+        case _ => 
+          var x = reduce(tt, store)
+          (Fix(x._1), x._2)
       }
 
       case _ => throw new NoRuleApplies(t)
@@ -566,6 +597,7 @@ object SimplyTypedExtended extends  StandardTokenParsers {
   def path(t: Term, reduce: (Term, Store) => (Term, Store)): LazyList[Term] =
     try {
       var t1 = reduce(t, st)
+      st = t1._2
       LazyList.cons(t, path(t1._1, reduce))
     } catch {
       case NoRuleApplies(_) =>
@@ -582,6 +614,7 @@ object SimplyTypedExtended extends  StandardTokenParsers {
           println("typed: " + typeof(Nil, trees))
           for (t <- path(trees, reduce))
             println(t)
+            // println(st)
         } catch {
           case tperror: Exception => println(tperror.toString)
         }
