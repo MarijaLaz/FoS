@@ -156,7 +156,7 @@ object SimplyTypedExtended extends  StandardTokenParsers {
       case Fix(t1) => Fix(subst(t1,x,s))
       
       // Location
-      case Loc(_) => t
+      case Loc(loc) => Loc(loc)
 
       // Ref
       case Ref(t1) => Ref(subst(t1, x, s))
@@ -186,7 +186,7 @@ object SimplyTypedExtended extends  StandardTokenParsers {
 
     t match {
       case Sequence(t1, t2) => t1 match
-        case UnitVal => reduce(t2, store)
+        case UnitVal => (t2, store)
         case _ => 
           var x = reduce(t1, store)
           (Sequence(x._1, t2), x._2)
@@ -323,74 +323,6 @@ object SimplyTypedExtended extends  StandardTokenParsers {
     }
   }
 
-  /** Call by value reducer. */
-  // def reduce(t: Term): Term = t match {
-  //   //arithmetic
-  //   case If(True, t1, _) => t1
-  //   case If(False, _, t2) => t2
-  //   case IsZero(Zero) => True
-  //   case IsZero(Succ(nv)) => False
-  //   case Pred(Zero) => Zero
-  //   case Pred(Succ(nv)) => nv
-  //   case If(t1, t2, t3) => If(reduce(t1), t2, t3)
-  //   case IsZero(t1) => IsZero(reduce(t1))
-  //   case Pred(t1) => Pred(reduce(t1))
-  //   case Succ(t1) => Succ(reduce(t1))
-
-  //   //untyped
-  //   case App(tt, s) =>
-  //     tt match {
-  //     case Abs(x1, type1, t1) => {
-  //       if(is_val(s)){
-  //           subst(t1, x1, s)
-  //       }
-  //       else{
-  //         App(tt, reduce(s))
-  //       }
-  //     }
-  //     case _ =>
-  //       if(is_val(tt)){
-  //         App(tt, reduce(s))
-  //       }
-  //       else
-  //         App(reduce(tt), s)
-  //   }
-
-  //   //pairs
-  //   case First(TermPair(t1,t2))
-  //     if(is_val(t1) && is_val(t2))
-  //       => t1
-
-  //   case Second(TermPair(t1,t2))  
-  //     if(is_val(t1) && is_val(t2))
-  //       => t2
-    
-  //   case First(t1) => First(reduce(t1))
-  //   case Second(t1) => Second(reduce(t1))
-  //   case TermPair(t1, t2) => 
-  //     if(is_val(t1))
-  //       TermPair(t1, reduce(t2))
-  //     else
-  //       TermPair(reduce(t1),t2)
-    
-  //   //sum
-  //   case Case(tt, x1, t1, x2, t2) => tt match {
-  //     case Inl(v0, tpe) => subst(t1,x1,v0)
-  //     case Inr(v0, tpe) => subst(t2,x2,v0)
-  //     case _ => Case(reduce(tt), x1, t1, x2, t2)
-  //   }
-  //   case Inl(tt, tpe) => Inl(reduce(tt),tpe)
-  //   case Inr(tt, tpe) => Inr(reduce(tt),tpe)
-
-  //   //fix
-  //   case Fix(tt) => tt match {
-  //     case Abs(x, type1, t2) => subst(t2, x, Fix(tt))
-  //     case _ => Fix(reduce(tt))
-  //   }
-
-  //   case _ => throw new NoRuleApplies(t)
-  // }
-
   /** Thrown when no reduction rule applies to the given term. */
   case class NoRuleApplies(t: Term) extends Exception(t.toString)
 
@@ -504,10 +436,6 @@ object SimplyTypedExtended extends  StandardTokenParsers {
       case TypeRef(tt1) => tt1
     case Assign(t1, t2) => typeof(ctx, t1) match
       case TypeRef(tt1) if(tt1 == typeof(ctx, t2)) => TypeUnit
-
-    // case x
-    //   if ctx.exists(_._1 == x) => 
-    //     ctx.find(_._1 == x).get._2 
     
     case _ => throw new TypeError(t, "Parameter Type mismatch")
   }
