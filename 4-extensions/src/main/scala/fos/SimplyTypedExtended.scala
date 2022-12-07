@@ -119,11 +119,6 @@ object SimplyTypedExtended extends  StandardTokenParsers {
 
   def subst(t: Term, x: String, s: Term): Term = {
     
-    // println("");
-    // println("To be substituted into: t=" +t);
-    // println("Variable of substitution: x=" + x);
-    // println("To substitute with: s=" + s);
-    // println("");
     t match {
       // Untyped
       case Var(y) => {if(y==x){s}else{Var(y)}}
@@ -205,10 +200,6 @@ object SimplyTypedExtended extends  StandardTokenParsers {
       }
       case Deref(t1) => t1 match
         case Loc(l) => {
-          // println("Term in question: " + t);
-          // println("Label: " + l);
-          // println("Store looks like: " + store)
-          // println("Term in store at above location: " + store.get(l));
           (store.get(l).get, store)
         }
         case _ => 
@@ -479,7 +470,7 @@ object SimplyTypedExtended extends  StandardTokenParsers {
         } catch {
           case tperror: Exception => println(tperror.toString)
         }
-      case e => {println(e); println("Hey")}
+      case e => {println(e)}
     }
   }
 }
