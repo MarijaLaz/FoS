@@ -10,9 +10,9 @@ object Infer {
   case class TypeError(msg: String) extends Exception(msg)
 
   def collect(env: Env, t: Term): (Type, List[Constraint]) = t match {
-    case True => (BoolType, List.empty)
-    case False => (BoolType, List.empty)
-    case Zero => (NatType, List.empty)
+    case True => (BoolType, Nil)
+    case False => (BoolType, Nil)
+    case Zero => (NatType, Nil)
     case Pred(tt) => {
       var type_constraint = collect(env, tt)
       var C_prime = type_constraint._2 :+ (type_constraint._1, NatType)
@@ -38,21 +38,22 @@ object Infer {
       C_prime = C_prime :+ (type_constraint_t1._1, type_constraint_t2._1)
       (type_constraint_t1._1, C_prime)
     }
-    case Var(name) if env.exists(_._1 == name) => (env.find(_._1 == name).get._2.tp, List.empty)
+    case Var(name) if env.exists(_._1 == name) => (env.find(_._1 == name).get._2.tp, Nil)
+
     case Abs(v, tp, tt) => {
       tp match
         // Empty tree from parser
         case EmptyTypeTree() => {
-          var new_type_var = new TypeVar(v) // create custom type T, not sure about v though. 2nd last para Phase 1 course webpage
+          var new_type_var = new TypeVar(freshX(v)) // create custom type T, not sure about v though. 2nd last para Phase 1 course webpage
           // typeavars need to be unique, maybe v is unique? Probably doesn't matter
-          var new_type_scheme = new TypeScheme(List.empty, new_type_var) // X could be anything, no constraints yet
+          var new_type_scheme = new TypeScheme(Nil, new_type_var) // X could be anything, no constraints yet
           var new_elem = (v, new_type_scheme)
           var new_env = env :+ new_elem // Gamma updated with new type scheme
           var type_constraint = collect(new_env, tt)
           (FunType(new_type_var, type_constraint._1), type_constraint._2)
         }
         case _ => {
-          var new_type_scheme = new TypeScheme(List.empty, tp.tpe) // not sure
+          var new_type_scheme = new TypeScheme(Nil, tp.tpe) // not sure
           var new_elem = (v, new_type_scheme)
           var new_env = env :+ new_elem
           var type_constraint = collect(new_env, tt)
@@ -65,24 +66,94 @@ object Infer {
       var type_constraint_t1= collect(env, t1)
       var type_constraint_t2 = collect(env, t2)
       var C_prime = type_constraint_t1._2 ++ type_constraint_t2._2
-      var new_type_var = new TypeVar("X" + ctr)
-      ctr += 1
+      var new_type_var = new TypeVar(freshX("X"))
       C_prime = C_prime :+ (type_constraint_t1._1, FunType(type_constraint_t2._1, new_type_var))
       (new_type_var, C_prime)
     }
+
+    case _=> throw new TypeError(" ")
+    
   }
+
+  def freshX(x:String):String={
+    ctr+=1
+    return x+ctr.toString()
+  }
+
   def unify(c: List[Constraint]): Type => Type = {
-    // If not empty
-
-    def appears(x: String, t: Term): Boolean = {
-      false
+    
+    if(c.isEmpty){
+      return tpe=>tpe
     }
 
-    c.head() match {
+    c.head match {
       case (s, t) if s == t => unify(c.tail)
-      case (s, t) => s match
-        case TypeVar(x) => if(appears(x, t)){then unify(c.tail)} else {throw new TypeError()}
-      case _ => throw new TypeError("Unification failed")
+      case (s, t) => s match {
+        case TypeVar(x) => {
+          if(!appears(s, t)){
+            var changed_constraints = mapList(c.tail,s,t)
+            unify(changed_constraints).compose{tpe=>substitute(tpe,s,t)}
+          } else {
+            throw new TypeError(" ")
+          }
+        }
+        case FunType(s1, s2)=>{
+          t match {
+            case FunType(t1, t2) => {
+              unify((s1,t1) :: (s2,t2) :: c.tail)
+            }
+            case _ => throw new TypeError("")
+          }
+        }
+        case _ => t match {
+          case TypeVar(x)=>{
+            if(!appears(t, s)){
+              var changed_constraints = mapList(c.tail,t,s)
+              unify(changed_constraints).compose{tpe=>substitute(tpe,t,s)}
+            } else {
+              throw new TypeError(" ")
+            }
+          }
+        }
+      }
     }
   }
+  
+
+  def appears(s: Type, t: Type): Boolean = {
+    if(s==t){
+      true
+    }else{
+      t match{
+        case FunType(t1,t2) => appears(s,t1) || appears(s,t2)
+        case _ => false
+      }
+    }
+
+  }
+
+  def mapList(list: List[Constraint],s:Type,t:Type)={
+    var changed_list = List.empty[Constraint]
+    for(el<-list){
+      var subst_tp1 = substitute(el._1,s,t)
+      var subst_tp2 = substitute(el._2,s,t)
+      changed_list = changed_list:+(subst_tp1,subst_tp2)
+    }
+    changed_list
+  }
+
+  def substitute(c_prime:Type, s:Type, t:Type):Type = {
+    if(c_prime==s){
+      t
+    }else{
+      c_prime match{
+        case FunType(t1,t2) => FunType(substitute(t1,s,t), substitute(t2,s,t))
+        case _ => c_prime
+      }
+    }
+
+  }
+
 }
+
+
