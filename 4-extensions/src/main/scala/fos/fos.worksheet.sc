@@ -34,6 +34,7 @@ parse("let x: Ref Nat=ref 0 in let y: Ref Nat = x in (x:=(succ (!x));(!y))",term
 reduce(parse("let x: Ref Nat=ref 0 in let y: Ref Nat = x in (x:=(succ (!x));(!y))",term).get, store)
 reduce(parse("let x: Ref Nat=ref 0 in let y: Ref Nat = x in (x:=(succ (!x));(!y))",term).get, store)
 parse("let x : Ref Nat = ref 0 in y := true", term)
+reduce(parse("let x: (Ref Nat) * (Ref Nat) = {ref  1, ref 2} in ! fst x", term).get, store)
 parse("let x: Ref Nat=ref 0 in let y: Ref Nat = ref 1 in (x:=(succ (!x));(y:=succ (!y)); if (false) then iszero(!y) else iszero(pred(!x)))",term)
 // (\x:Ref Nat. (\y:Nat. iszero !y) !x) ref 0
 // reduce(parse("\\x:Nat+Bool*Nat->Nat*Nat+Nat. x", term).get, store)
