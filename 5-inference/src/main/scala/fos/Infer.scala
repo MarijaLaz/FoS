@@ -44,7 +44,7 @@ object Infer {
       tp match
         // Empty tree from parser
         case EmptyTypeTree() => {
-          var new_type_var = new TypeVar(freshX(v)) // create custom type T, not sure about v though. 2nd last para Phase 1 course webpage
+          var new_type_var = new TypeVar(freshX("T")) // create custom type T, not sure about v though. 2nd last para Phase 1 course webpage
           // typeavars need to be unique, maybe v is unique? Probably doesn't matter
           var new_type_scheme = new TypeScheme(Nil, new_type_var) // X could be anything, no constraints yet
           var new_elem = (v, new_type_scheme)
@@ -72,7 +72,6 @@ object Infer {
     }
 
     case _=> throw new TypeError(" ")
-    
   }
 
   def freshX(x:String):String={
@@ -93,8 +92,9 @@ object Infer {
           if(!appears(s, t)){
             var changed_constraints = mapList(c.tail,s,t)
             unify(changed_constraints).compose{tpe=>substitute(tpe,s,t)}
-          } else {
-            throw new TypeError(" ")
+          } 
+          else {
+            throw new TypeError("")
           }
         }
         case FunType(s1, s2)=>{
@@ -102,18 +102,27 @@ object Infer {
             case FunType(t1, t2) => {
               unify((s1,t1) :: (s2,t2) :: c.tail)
             }
+            case TypeVar(y) => { // Y can be a type variable
+              if(!appears(t, s)){
+                var changed_constraints = mapList(c.tail,t,s)
+                unify(changed_constraints).compose{tpe=>substitute(tpe,t,s)}
+              } else {
+                throw new TypeError("")
+              }
+            }
             case _ => throw new TypeError("")
           }
         }
         case _ => t match {
-          case TypeVar(x)=>{
+          case TypeVar(y)=>{
             if(!appears(t, s)){
               var changed_constraints = mapList(c.tail,t,s)
               unify(changed_constraints).compose{tpe=>substitute(tpe,t,s)}
             } else {
-              throw new TypeError(" ")
+              throw new TypeError("")
             }
           }
+          case _ => throw new TypeError("") // X is Bool, Y is Nat
         }
       }
     }
@@ -125,11 +134,10 @@ object Infer {
       true
     }else{
       t match{
-        case FunType(t1,t2) => appears(s,t1) || appears(s,t2)
+        case FunType(t1,t2) => (appears(s,t1) || appears(s,t2))
         case _ => false
       }
     }
-
   }
 
   def mapList(list: List[Constraint],s:Type,t:Type)={
